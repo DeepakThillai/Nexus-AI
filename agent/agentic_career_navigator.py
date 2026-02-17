@@ -1,7 +1,7 @@
 """
 ╔══════════════════════════════════════════════════════════════════╗
-║           AGENTIC CAREER NAVIGATOR                              ║
-║           Powered by Groq (openai/gpt-oss-120b)                ║
+║           AGENTIC CAREER NAVIGATOR                               ║
+║           Powered by Groq (openai/gpt-oss-120b)                  ║
 ╚══════════════════════════════════════════════════════════════════╝
 
 Architecture:
