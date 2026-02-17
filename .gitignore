@@ -1,0 +1,9 @@
+.env
+
+# Ignore all files inside resumes
+data/resumes/*
+!data/resumes/.gitkeep
+
+# Ignore all files inside user_contexts
+data/user_contexts/*
+!data/user_contexts/.gitkeep

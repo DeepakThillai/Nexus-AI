@@ -1,0 +1,15 @@
+# Core Dependencies
+groq>=0.4.1                # Groq API (gpt-oss-120b)
+python-dotenv>=1.0.0       # Environment variable management
+
+# Resume Processing
+pdfminer.six>=20220524     # PDF text extraction
+pytesseract>=0.3.10        # OCR for images
+Pillow>=10.0.0             # Image processing
+
+# Database
+pymongo>=4.6.0             # MongoDB driver
+pymongo[srv]>=4.6.0        # MongoDB Atlas support
+
+# Utilities
+requests>=2.31.0           # HTTP requests

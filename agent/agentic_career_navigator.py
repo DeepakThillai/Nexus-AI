@@ -6,6 +6,7 @@
 
 Architecture:
   Orchestrator → coordinates all agents and maintains persistent state
+  ├── ResumeAnalyzerAgent       → extracts skills & profile from resumes
   ├── ReadinessAssessmentAgent  → evaluates user readiness for target role
   ├── MarketIntelligenceAgent   → generates structured market analysis
   ├── RoadmapAgent              → builds a 5-month action roadmap
@@ -20,18 +21,50 @@ Usage:
 import json
 import re
 import os
-from datetime import date
-from typing import Optional
+import sys
+import time
+import shutil
+from datetime import date, timedelta, datetime
+from typing import Optional, Dict, Any, List
+from pathlib import Path
+
+# Add project root to path so we can import database modules
+PROJECT_ROOT = str(Path(__file__).parent.parent)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 from groq import AuthenticationError, Groq
+
+# Import database modules
+from database.user_context import UserContextManager
+from database.mongo_store import MongoStore
+
+# Import resume analysis dependencies
+try:
+    from pdfminer.high_level import extract_text
+    _PDF_AVAILABLE = True
+except ImportError:
+    _PDF_AVAILABLE = False
+
+try:
+    import pytesseract
+    from PIL import Image
+    _OCR_AVAILABLE = True
+except ImportError:
+    _OCR_AVAILABLE = False
 
 # ═══════════════════════════════════════════════════════════════════
 #  GROQ CLIENT + SHARED LLM CALL
 # ═══════════════════════════════════════════════════════════════════
 
-# Configure via environment variable only.
 API_ENV_VAR = "GROQ_API_KEY"
-MODEL       = "openai/gpt-oss-120b"   # Groq-hosted GPT-style model
+MODEL = "openai/gpt-oss-120b"  # Groq-hosted GPT-style model
 
 _client: Optional[Groq] = None
 
@@ -41,16 +74,17 @@ def _get_api_key() -> str:
     key = os.environ.get(API_ENV_VAR, "").strip()
     if not key:
         raise RuntimeError(
-            f"Missing {API_ENV_VAR}. Set it before running this script."
+            f"Missing {API_ENV_VAR}. Set it in .env file or as environment variable."
         )
     return key
 
 
 def get_client() -> Groq:
-    """Lazily initialise and return the shared Groq client."""
+    """Lazily initialize and return the shared Groq client."""
     global _client
     if _client is None:
-        _client = Groq(api_key=_get_api_key())
+        api_key = _get_api_key()
+        _client = Groq(api_key=api_key)
     return _client
 
 
@@ -67,10 +101,10 @@ def call_llm(system_prompt: str, user_prompt: str, max_tokens: int = 2048) -> st
             model=MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user",   "content": user_prompt},
+                {"role": "user", "content": user_prompt},
             ],
             max_completion_tokens=max_tokens,
-            stream=False,        # deterministic, no streaming
+            stream=False,
         )
     except AuthenticationError as exc:
         raise RuntimeError(
@@ -119,6 +153,305 @@ def print_section(title: str) -> None:
 def print_dict(d: dict, indent: int = 2) -> None:
     """Print a dict as formatted JSON for clean CLI output."""
     print(json.dumps(d, indent=indent, default=str))
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  AGENT 0 — ResumeAnalyzerAgent
+# ═══════════════════════════════════════════════════════════════════
+
+class ResumeAnalyzerAgent:
+    """
+    Analyzes resume files to extract skills, experience, education.
+    Performs skill gap analysis against target role requirements.
+    
+    INPUT:
+        user_id: str
+        file_path: str (path to resume file)
+        file_name: str (original filename)
+    
+    OUTPUT:
+        parsed_profile: dict
+        extracted_skills: dict (categorized)
+        normalized_skills: list
+        skill_gap_analysis: dict
+        career_recommendations: dict
+    """
+    
+    def __init__(self):
+        self.name = "ResumeAnalyzerAgent"
+        self.context_manager = UserContextManager()
+
+    def extract_text_from_pdf(self, pdf_path: str) -> str:
+        """Extract text from PDF using pdfminer.six"""
+        if not _PDF_AVAILABLE:
+            return ""
+        try:
+            text = extract_text(pdf_path)
+            return text.strip()
+        except Exception as e:
+            print(f"  [Resume] PDF extraction error: {str(e)[:50]}")
+            return ""
+
+    def extract_text_from_image(self, image_path: str) -> str:
+        """Extract text from image using Tesseract OCR"""
+        if not _OCR_AVAILABLE:
+            return ""
+        try:
+            img = Image.open(image_path)
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            text = pytesseract.image_to_string(img)
+            return text.strip()
+        except Exception as e:
+            print(f"  [Resume] OCR extraction error: {str(e)[:50]}")
+            return ""
+
+    def extract_text(self, file_path: str) -> tuple:
+        """Extract text from file (PDF or image)"""
+        file_ext = os.path.splitext(file_path)[1].lower()
+        
+        if file_ext == '.pdf':
+            text = self.extract_text_from_pdf(file_path)
+            return text, "pdf"
+        elif file_ext in ['.png', '.jpg', '.jpeg']:
+            text = self.extract_text_from_image(file_path)
+            return text, "ocr"
+        else:
+            return "", "unsupported"
+
+    def parse_resume(self, resume_text: str) -> Dict[str, Any]:
+        """Parse resume text using LLM to extract structured information"""
+        if len(resume_text) < 50:
+            return {
+                "parsed_profile": {},
+                "extracted_skills": {
+                    "programming_languages": [],
+                    "frameworks": [],
+                    "databases": [],
+                    "cloud_platforms": [],
+                    "tools": [],
+                    "soft_skills": []
+                },
+                "projects": [],
+                "achievements": [],
+                "languages": []
+            }
+
+        system = (
+            "You are a professional resume parser. Extract ALL relevant information. "
+            "Return ONLY valid JSON matching the provided schema. No explanations."
+        )
+
+        schema = {
+            "parsed_profile": {
+                "name": "string or null",
+                "email": "string or null",
+                "phone": "string or null",
+                "location": "string or null",
+                "linkedin": "string or null",
+                "github": "string or null",
+                "experience_years": 0,
+                "job_titles": [],
+                "education": [],
+                "certifications": []
+            },
+            "extracted_skills": {
+                "programming_languages": [],
+                "frameworks": [],
+                "databases": [],
+                "cloud_platforms": [],
+                "tools": [],
+                "soft_skills": []
+            },
+            "projects": [{"name": "string", "description": "string", "technologies": []}],
+            "achievements": [],
+            "languages": []
+        }
+
+        user = (
+            f"Extract information from this resume:\n\n{resume_text[:3000]}\n\n"
+            f"Return this exact JSON schema:\n{json.dumps(schema, indent=2)}"
+        )
+
+        try:
+            response = call_llm(system, user, max_tokens=2500)
+            response = response.replace("```json", "").replace("```", "").strip()
+            parsed = json.loads(response)
+            return parsed
+        except Exception as e:
+            print(f"  [Resume] JSON parse error: {str(e)[:50]}")
+            return {
+                "parsed_profile": {},
+                "extracted_skills": {
+                    "programming_languages": [],
+                    "frameworks": [],
+                    "databases": [],
+                    "cloud_platforms": [],
+                    "tools": [],
+                    "soft_skills": []
+                },
+                "projects": [],
+                "achievements": [],
+                "languages": []
+            }
+
+    def normalize_skills(self, extracted_skills: Dict[str, List[str]]) -> List[str]:
+        """Flatten and normalize skills into single list"""
+        all_skills = []
+        for category, skills in extracted_skills.items():
+            if isinstance(skills, list):
+                all_skills.extend(skills)
+        
+        normalized = list(set([s.strip().lower() for s in all_skills if s]))
+        return sorted(normalized)
+
+    def calculate_skill_gap(self, user_id: str, resume_skills: List[str]) -> Dict[str, Any]:
+        """Calculate skill gap between resume and target role"""
+        context = self.context_manager.load_context(user_id)
+        
+        # Get required skills (support multiple schema formats)
+        required_skills = context.get("career_state", {}).get("required_skills", [])
+        if not required_skills:
+            required_skills = context.get("required_skills", [])
+        
+        # Normalize
+        required_normalized = [s.strip().lower() for s in required_skills if s]
+        resume_normalized = [s.strip().lower() for s in resume_skills if s]
+        
+        # Find matches
+        matched_skills = []
+        missing_skills = []
+        
+        for req_skill in required_normalized:
+            found = False
+            for res_skill in resume_normalized:
+                if req_skill in res_skill or res_skill in req_skill:
+                    matched_skills.append(req_skill)
+                    found = True
+                    break
+            if not found:
+                missing_skills.append(req_skill)
+        
+        # Calculate percentages
+        total_required = len(required_normalized) if required_normalized else 1
+        matched_count = len(matched_skills)
+        missing_count = len(missing_skills)
+        
+        match_percentage = (matched_count / total_required * 100) if total_required > 0 else 0
+        gap_percentage = 100 - match_percentage
+        
+        return {
+            "required_skills_count": total_required,
+            "user_skills_count": matched_count,
+            "skill_gap_count": missing_count,
+            "skill_gap_percentage": round(gap_percentage, 1),
+            "match_percentage": round(match_percentage, 1),
+            "matched_skills": matched_skills[:10],  # Top 10
+            "missing_skills": missing_skills[:5],   # Top 5
+            "high_impact_missing": missing_skills[:3]  # Top 3 critical
+        }
+
+    def run(self, input_data: dict) -> dict:
+        """Complete resume analysis workflow - Extract and normalize skills only (gap analysis happens during readiness)"""
+        user_id = input_data["user_id"]
+        file_path = input_data["file_path"]
+        file_name = input_data.get("file_name", "resume")
+        
+        start_time = time.time()
+        
+        try:
+            print(f"  [1/3] Extracting text from {file_name}...")
+            raw_text, extraction_method = self.extract_text(file_path)
+            
+            if not raw_text or len(raw_text) < 50:
+                return {"status": "error", "message": "Could not extract text from resume"}
+            
+            print(f"  [2/3] Parsing resume structure...")
+            parsed_data = self.parse_resume(raw_text)
+            
+            print(f"  [3/3] Normalizing skills...")
+            extracted_skills_dict = parsed_data.get("extracted_skills", {})
+            normalized_skills = self.normalize_skills(extracted_skills_dict)
+            
+            # NOTE: Skill gap analysis moved to ReadinessAssessmentAgent
+            # Gap analysis requires knowing target_role, which is selected AFTER resume upload
+            
+            processing_time = time.time() - start_time
+            
+            # Update context with resume data
+            context = self.context_manager.load_context(user_id)
+            parsed_profile = parsed_data.get("parsed_profile", {})
+            
+            # Map to profile section
+            context["profile"].update({
+                "name": parsed_profile.get("name"),
+                "email": parsed_profile.get("email"),
+                "phone": parsed_profile.get("phone"),
+                "experience_years": parsed_profile.get("experience_years", 0),
+                "resume_uploaded": True,
+                "resume_uploaded_at": datetime.now().isoformat(),
+                "resume_file_name": file_name
+            })
+            
+            # Map education
+            education_list = parsed_profile.get("education", [])
+            if education_list and len(education_list) > 0:
+                edu_str = education_list[0] if isinstance(education_list[0], str) else ""
+                if edu_str:
+                    context["profile"]["education"]["degree"] = edu_str
+            
+            # Map skills
+            if extracted_skills_dict:
+                context["profile"]["skills"] = {
+                    "technical": extracted_skills_dict.get("programming_languages", []),
+                    "frameworks": extracted_skills_dict.get("frameworks", []),
+                    "databases": extracted_skills_dict.get("databases", []),
+                    "tools": extracted_skills_dict.get("tools", []) + extracted_skills_dict.get("cloud_platforms", []),
+                    "soft_skills": extracted_skills_dict.get("soft_skills", [])
+                }
+            
+            # Map other fields
+            context["profile"]["projects"] = parsed_data.get("projects", [])
+            context["profile"]["certifications"] = parsed_data.get("certifications", []) or parsed_profile.get("certifications", [])
+            context["profile"]["achievements"] = parsed_data.get("achievements", [])
+            context["profile"]["languages"] = parsed_data.get("languages", [])
+            context["profile"]["linkedin"] = parsed_profile.get("linkedin")
+            context["profile"]["github"] = parsed_profile.get("github")
+            
+            # Note: Skill gap analysis will be done during readiness assessment
+            # after target role is selected
+            
+            # Store analysis
+            context["resume_analysis"] = {
+                "parsed_profile": parsed_profile,
+                "extracted_skills": extracted_skills_dict,
+                "normalized_skills": normalized_skills,
+                "extraction_method": extraction_method,
+                "processing_time_seconds": round(processing_time, 2)
+            }
+            
+            self.context_manager.save_context(user_id, context)
+            
+            # Optionally sync to MongoDB
+            try:
+                mongo = MongoStore()
+                mongo.sync(user_id, context)
+            except:
+                pass  # MongoDB optional
+            
+            print(f"  ✓ Resume analysis complete in {processing_time:.2f}s")
+            print(f"  ✓ {len(normalized_skills)} skills extracted")
+            
+            return {
+                "status": "success",
+                "parsed_profile": parsed_profile,
+                "extracted_skills": extracted_skills_dict,
+                "normalized_skills": normalized_skills
+            }
+            
+        except Exception as e:
+            print(f"  ✗ Resume analysis failed: {str(e)[:100]}")
+            return {"status": "error", "message": str(e)}
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -726,8 +1059,13 @@ class Orchestrator:
     def __init__(self):
         # Deep-copy the schema template to live state
         self.user_state = json.loads(json.dumps(self.INITIAL_STATE))
+        
+        # Initialize context manager and MongoDB
+        self.context_manager = UserContextManager()
+        self.mongo = MongoStore()
 
         # Instantiate all agents
+        self.resume_agent      = ResumeAnalyzerAgent()
         self.readiness_agent   = ReadinessAssessmentAgent()
         self.market_agent      = MarketIntelligenceAgent()
         self.roadmap_agent     = RoadmapAgent()
@@ -809,6 +1147,48 @@ class Orchestrator:
         self.user_state["profile"]["skills"]      = [s.strip() for s in skills_raw.split(",") if s.strip()]
 
         print(f"\n  ✓ Profile saved for: {target_role}")
+
+    # ── Step 1.5: Resume Upload (Optional) ──────────────────────────
+
+    def _collect_resume(self, user_id: str) -> None:
+        """Optional: Upload and analyze resume"""
+        print_section("RESUME UPLOAD (Optional)")
+        print("  You can upload a resume (PDF/PNG/JPG) to auto-populate your profile.")
+        upload = input("  Upload resume? (y/n): ").strip().lower()
+        
+        if upload != 'y':
+            print("  Skipping resume upload.")
+            return
+        
+        file_path = input("  Enter full path to resume file: ").strip()
+        
+        if not os.path.exists(file_path):
+            print("  ✗ File not found.")
+            return
+        
+        print("\n  Processing resume...")
+        result = self.resume_agent.run({
+            "user_id": user_id,
+            "file_path": file_path,
+            "file_name": os.path.basename(file_path)
+        })
+        
+        if result["status"] == "success":
+            print("\n  ✓ Resume analysis complete!")
+            
+            # Auto-populate skills from resume
+            skills = result["extracted_skills"]
+            extracted_skills = []
+            for category, skill_list in skills.items():
+                extracted_skills.extend(skill_list)
+            
+            self.user_state["profile"]["skills"].extend(extracted_skills)
+            self.user_state["profile"]["skills"] = list(set(self.user_state["profile"]["skills"]))
+            
+            print(f"  ✓ {len(extracted_skills)} skills added from resume")
+            print(f"  ✓ Skill gap analysis: {result['skill_gap_analysis']['match_percentage']:.1f}% match")
+        else:
+            print(f"  ✗ Resume analysis failed: {result.get('message')}")
 
     # ── Step 2: Run Readiness Assessment ──────────────────────────
 
@@ -1003,47 +1383,295 @@ class Orchestrator:
         print_section("FEEDBACK REPORT")
         print_dict(self.user_state["feedback_analysis"])
 
+    # ── Step 1: User Login/Initialization ────────────────────────
+
+    def _user_login(self) -> tuple[str, Dict[str, Any]]:
+        """Initialize or load existing user"""
+        print_section("WELCOME TO AGENTIC CAREER NAVIGATOR")
+        
+        choice = input("  [1] Create new profile\n  [2] Load existing profile\n  Your choice: ").strip()
+        
+        if choice == "2":
+            user_id = input("  Enter your user ID: ").strip()
+            try:
+                context = self.context_manager.load_context(user_id)
+                print(f"  ✓ Profile loaded: {context.get('profile', {}).get('name', 'User')}")
+                return user_id, context
+            except:
+                print("  ✗ User not found. Creating new profile...")
+                return self._create_new_user()
+        else:
+            return self._create_new_user()
+
+    def _create_new_user(self) -> tuple[str, Dict[str, Any]]:
+        """Create a new user profile"""
+        user_id = f"user_{int(time.time())}"
+        context = self.context_manager.initialize_context(user_id)
+        print(f"  ✓ New profile created. User ID: {user_id}")
+        return user_id, context
+
+    # ── Step 2: Resume vs Manual Skills Input ─────────────────────
+
+    def _get_initial_skills(self, user_id: str, context: Dict) -> Dict[str, Any]:
+        """Option 1: Upload resume OR Option 2: Enter skills manually"""
+        print_section("SKILL ENTRY METHOD")
+        
+        print("  How would you like to provide your skills?")
+        choice = input("  [1] Upload resume (PDF/PNG/JPG)\n  [2] Enter skills manually\n  Your choice: ").strip()
+        
+        if choice == "1":
+            return self._handle_resume_upload(user_id, context)
+        else:
+            return self._handle_manual_skills_entry(context)
+
+    def _handle_resume_upload(self, user_id: str, context: Dict) -> Dict[str, Any]:
+        """Upload and analyze resume"""
+        print_section("RESUME UPLOAD")
+        
+        file_path = input("  Enter full path to resume file: ").strip()
+        
+        if not os.path.exists(file_path):
+            print("  ✗ File not found. Falling back to manual entry...")
+            return self._handle_manual_skills_entry(context)
+        
+        # Copy resume file to archive directory
+        resume_upload_dir = os.getenv("RESUME_UPLOAD_DIR", "./data/resumes")
+        os.makedirs(resume_upload_dir, exist_ok=True)
+        
+        original_filename = os.path.basename(file_path)
+        archived_filename = f"{user_id}_{original_filename}"
+        archived_path = os.path.join(resume_upload_dir, archived_filename)
+        
+        try:
+            shutil.copy2(file_path, archived_path)
+            print(f"  ✓ Resume archived to: {archived_path}")
+        except Exception as e:
+            print(f"  ⚠ Archive warning: {str(e)[:60]}")
+        
+        print("\n  Processing resume...")
+        result = self.resume_agent.run({
+            "user_id": user_id,
+            "file_path": file_path,
+            "file_name": os.path.basename(file_path)
+        })
+        
+        if result["status"] == "success":
+            print("\n  ✓ Resume analyzed successfully!")
+            
+            # Extract available information
+            parsed = result["parsed_profile"]
+            skills_dict = result["extracted_skills"]
+            
+            # Flatten skills
+            extracted_skills = []
+            for category, skill_list in skills_dict.items():
+                extracted_skills.extend(skill_list)
+            
+            # Update context with extracted data
+            context["profile"].update({
+                "name": parsed.get("name"),
+                "email": parsed.get("email"),
+                "phone": parsed.get("phone"),
+                "experience_years": parsed.get("experience_years", 0),
+                "resume_uploaded": True,
+                "resume_uploaded_at": datetime.now().isoformat(),
+                "resume_file_name": original_filename,
+                "resume_archived_path": archived_path,
+                "skills": {
+                    "technical": skills_dict.get("programming_languages", []),
+                    "frameworks": skills_dict.get("frameworks", []),
+                    "databases": skills_dict.get("databases", []),
+                    "tools": skills_dict.get("tools", []) + skills_dict.get("cloud_platforms", []),
+                    "soft_skills": skills_dict.get("soft_skills", [])
+                }
+            })
+            
+            # Also save resume analysis
+            context["resume_analysis"] = {
+                "parsed_profile": parsed,
+                "extracted_skills": skills_dict,
+                "normalized_skills": result["normalized_skills"],
+                "upload_time": datetime.now().isoformat(),
+                "archived_path": archived_path,
+                "original_filename": original_filename
+            }
+            
+            # Persist to database immediately
+            self.context_manager.save_context(user_id, context)
+            self.mongo.sync(user_id, context)
+            
+            return {
+                "source": "resume",
+                "skills": extracted_skills,
+                "profile_data": parsed,
+                "extracted_skills_dict": skills_dict
+            }
+        else:
+            print(f"  ✗ Resume analysis failed: {result.get('message')}")
+            return self._handle_manual_skills_entry(context)
+
+    def _handle_manual_skills_entry(self, context: Dict) -> Dict[str, Any]:
+        """Manual skill entry"""
+        print_section("MANUAL SKILL ENTRY")
+        
+        strengths_raw = input("  List your strengths (comma-separated, e.g. communication, Python): ").strip()
+        weaknesses_raw = input("  List your weaknesses (comma-separated, e.g. public speaking, SQL): ").strip()
+        skills_raw = input("  List your current skills (comma-separated, e.g. Excel, Figma): ").strip()
+        
+        strengths = [s.strip() for s in strengths_raw.split(",") if s.strip()]
+        weaknesses = [w.strip() for w in weaknesses_raw.split(",") if w.strip()]
+        skills = [s.strip() for s in skills_raw.split(",") if s.strip()]
+        
+        return {
+            "source": "manual",
+            "skills": skills,
+            "strengths": strengths,
+            "weaknesses": weaknesses,
+            "profile_data": {}
+        }
+
+    # ── Step 3: Get Target Role  ──────────────────────────────────
+
+    def _get_target_role(self) -> str:
+        """Ask user for their target career role"""
+        print_section("TARGET ROLE")
+        
+        target_role = input("  What is your target career role? ").strip()
+        if not target_role:
+            target_role = input("  Enter at least one role: ").strip()
+        
+        print(f"  ✓ Target role set: {target_role}")
+        return target_role
+
+    # ── Step 4: Run Readiness Assessment ───────────────────────────
+
+    def _run_readiness_with_skills(self, target_role: str, skills: List[str], strengths: List[str], weaknesses: List[str], user_id: str, context: Dict) -> None:
+        """Run readiness assessment with extracted/manual skills"""
+        profile = {
+            "target_role": target_role,
+            "skills": skills,
+            "strengths": strengths if strengths else ["To be determined"]
+        }
+        
+        result = self.readiness_agent.run(profile)
+        
+        # Update user_state with final profile data
+        self.user_state["profile"]["target_role"] = target_role
+        self.user_state["profile"]["strengths"] = strengths
+        self.user_state["profile"]["weaknesses"] = weaknesses if weaknesses else []
+        self.user_state["profile"]["skills"] = skills
+        
+        # Update readiness results
+        self.user_state["readiness"] = {
+            "score": int(result.get("readiness_score", 0)),
+            "status": result.get("readiness_status", ""),
+            "evaluation_summary": result.get("evaluation_summary", ""),
+            "safer_adjacent_roles": result.get("safer_adjacent_roles", []),
+            "advanced_adjacent_roles": result.get("advanced_adjacent_roles", [])
+        }
+        
+        # Initialize confidence score from readiness
+        self.user_state["confidence_score"] = self.user_state["readiness"]["score"]
+        
+        # Update context
+        context["career_state"]["current_target_role"] = target_role
+        context["readiness_assessment"].update({
+            "status": result.get("readiness_status"),
+            "confidence_score": self.user_state["readiness"]["score"],
+            "reasoning": result.get("evaluation_summary"),
+            "last_assessed_at": datetime.now().isoformat()
+        })
+        
+        # Persist
+        self.context_manager.save_context(user_id, context)
+        self.mongo.sync(user_id, context)
+        
+        print_section("READINESS RESULT")
+        print_dict(self.user_state["readiness"])
+        print(f"\n  Initial Confidence Score: {self.user_state['confidence_score']}")
+
     # ── Main run method ───────────────────────────────────────────
 
     def run(self) -> None:
         """
-        Full sequential flow:
-          1. Collect user profile
-          2. Readiness Assessment  (GPT questions → user answers → GPT evaluation)
-          3. Market Intelligence   (GPT structured analysis)
-          4. Roadmap Generation    (GPT 5-month plan)
-          5. Action Assessment Loop (interactive, GPT per action)
-          6. Final Feedback Report  (GPT comprehensive review)
-          7. Print final state
+        Complete flow:
+          1. User Login/Create Account
+          2. Resume Upload OR Manual Skills Entry
+          3. Get Target Role
+          4. Run Readiness Assessment
+          5. Market Intelligence
+          6. Roadmap Generation
+          7. Action Assessment Loop
+          8. Final Feedback
+          9. Persist everything to MongoDB
         """
         print("\n" + "╔" + "═"*58 + "╗")
         print("║        AGENTIC CAREER NAVIGATOR                        ║")
-        print("║        Powered by Groq / GPT                           ║")
+        print("║        Powered by Groq (openai/gpt-oss-120b)           ║")
         print("╚" + "═"*58 + "╝")
 
-        # 1. Profile
-        self._collect_profile()
-
-        # 2. Readiness Assessment
-        self._run_readiness()
-
-        # 3. Market Intelligence
+        # Step 1: User Login
+        user_id, context = self._user_login()
+        
+        # Step 2: Get Skills (Resume or Manual)
+        skills_input = self._get_initial_skills(user_id, context)
+        skills = skills_input.get("skills", [])
+        strengths = skills_input.get("strengths", [])
+        weaknesses = skills_input.get("weaknesses", [])
+        
+        print(f"\n  ✓ Skills loaded: {len(skills)} skills extracted")
+        
+        # Step 3: Get Target Role
+        target_role = self._get_target_role()
+        
+        # Step 4: Readiness Assessment
+        self._run_readiness_with_skills(target_role, skills, strengths, weaknesses, user_id, context)
+        
+        # Step 5: Market Intelligence
         self._run_market_intelligence()
-
-        # 4. Roadmap
+        
+        # Step 6: Roadmap
+        self.user_state["profile"]["target_role"] = target_role
+        self.user_state["profile"]["skills"] = skills
+        self.user_state["profile"]["strengths"] = strengths
+        self.user_state["profile"]["weaknesses"] = weaknesses
         self._run_roadmap()
-
-        # 5. Action Loop (main interactive session)
+        
+        # Step 7: Action Loop
         self._run_action_loop()
-
-        # 6. Final Feedback
+        
+        # Step 8: Final Feedback
         self._run_feedback()
-
-        # 7. Final State dump
-        print_section("FINAL PERSISTENT STATE (MongoDB-Ready)")
+        
+        # Step 9: Final save to database
+        print_section("FINAL PERSISTENT STATE")
         print_dict(self.user_state)
-
-        print("\n  ✓ Session complete. State is ready for MongoDB insertion.\n")
+        
+        # Persist final state
+        try:
+            print("\n  Saving to database...")
+            context.update({
+                "profile": {
+                    "target_role": target_role,
+                    "skills": skills,
+                    "strengths": strengths,
+                    "weaknesses": weaknesses,
+                    "name": context.get("profile", {}).get("name"),
+                    "email": context.get("profile", {}).get("email"),
+                    "phone": context.get("profile", {}).get("phone"),
+                    "experience_years": context.get("profile", {}).get("experience_years", 0),
+                    "resume_uploaded": context.get("profile", {}).get("resume_uploaded", False),
+                    "resume_uploaded_at": context.get("profile", {}).get("resume_uploaded_at"),
+                    "resume_file_name": context.get("profile", {}).get("resume_file_name")
+                }
+            })
+            self.context_manager.save_context(user_id, context)
+            self.mongo.sync(user_id, context)
+            print(f"  ✓ Profile saved to MongoDB (User ID: {user_id})")
+        except Exception as e:
+            print(f"  ⚠ Database save error: {str(e)[:100]}")
+        
+        print("\n  ✓ Session complete!\n")
 
 
 # ═══════════════════════════════════════════════════════════════════
