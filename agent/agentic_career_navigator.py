@@ -1472,13 +1472,35 @@ class Orchestrator:
         # Check if email already exists
         existing_user_id = self.context_manager.get_user_id_by_email(email)
         if existing_user_id:
-            print(f"  ✗ An account with email {email} already exists.")
-            load = input("  Would you like to load that account? (y/n): ").strip().lower()
-            if load == 'y':
-                context = self.context_manager.load_context(existing_user_id)
-                return existing_user_id, context
-            else:
+            existing_context = self.context_manager.load_context(existing_user_id)
+            existing_name = existing_context.get('profile', {}).get('name') or 'Unknown'
+            
+            print(f"\n  ℹ️  An account with email '{email}' already exists:")
+            print(f"  Name: {existing_name}")
+            print(f"  User ID: {existing_user_id}")
+            print(f"\n  Options:")
+            print(f"  [1] Load existing account (recommended)")
+            print(f"  [2] Try a different email")
+            print(f"  [3] Cancel and return to main menu")
+            
+            choice = input("\n  Your choice (1-3): ").strip()
+            
+            if choice == '1':
+                print(f"  ✓ Loading existing account...")
+                return existing_user_id, existing_context
+            elif choice == '2':
+                print(f"\n  Please enter a different email address.\n")
                 return self._create_new_user()
+            else:
+                print(f"  Returning to main menu...")
+                return self._user_login()
+        
+        # Double-check before creating (prevent race conditions)
+        final_check = self.context_manager.get_user_id_by_email(email)
+        if final_check:
+            print(f"  ⚠️  Duplicate detected during final check. Loading existing account...")
+            context = self.context_manager.load_context(final_check)
+            return final_check, context
         
         # Create new user
         user_id = f"user_{int(time.time())}"
@@ -1723,13 +1745,23 @@ class Orchestrator:
         
         name = context.get("profile", {}).get("name", "User")
         target_role = context.get("career_state", {}).get("current_target_role")
-        progress = context.get("active_roadmap", {}).get("completion_percentage", 0)
         confidence = context.get("readiness_assessment", {}).get("confidence_score", 0)
+        
+        # Calculate progress from completed/failed actions
+        active_roadmap = context.get("active_roadmap", {})
+        steps = active_roadmap.get("steps", [])
+        total_actions = sum(len(s.get("actions", [])) for s in steps)
+        completed_actions = sum(
+            1 for s in steps
+            for a in s.get("actions", [])
+            if a.get("status") in ["completed", "passed", "failed"]
+        )
+        progress = (completed_actions / total_actions * 100) if total_actions else 0
         
         print(f"  Name: {name}")
         print(f"  Current Goal: {target_role}")
         print(f"  Progress: {progress:.0f}%")
-        print(f"  Confidence: {confidence:.0%}")
+        print(f"  Confidence: {confidence:.0f}/100")
         
         print("\n  What would you like to do?")
         print("  [1] Continue my current roadmap")
@@ -1770,7 +1802,7 @@ class Orchestrator:
         
         print(f"\n  ✓ Loaded existing roadmap for: {self.user_state['profile']['target_role']}")
         print(f"  Actions completed: {self.user_state['analytics']['completed_actions_count']}/{total_actions}")
-        print(f"  Current confidence: {self.user_state['confidence_score']:.0%}")
+        print(f"  Current confidence: {self.user_state['confidence_score']:.0f}/100")
     
     def _show_progress_summary(self, context: Dict[str, Any]) -> None:
         """Display current progress summary"""
@@ -1779,14 +1811,25 @@ class Orchestrator:
         name = context.get("profile", {}).get("name", "User")
         target_role = context.get("career_state", {}).get("current_target_role", "Not set")
         confidence = context.get("readiness_assessment", {}).get("confidence_score", 0)
-        progress = context.get("active_roadmap", {}).get("completion_percentage", 0)
+        
+        # Calculate progress from completed/failed actions
+        active_roadmap = context.get("active_roadmap", {})
+        steps = active_roadmap.get("steps", [])
+        total_actions = sum(len(s.get("actions", [])) for s in steps)
+        completed_actions_count = sum(
+            1 for s in steps
+            for a in s.get("actions", [])
+            if a.get("status") in ["completed", "passed", "failed"]
+        )
+        progress = (completed_actions_count / total_actions * 100) if total_actions else 0
+        
         actions_completed = context.get("progress", {}).get("actions_completed", 0)
         actions_failed = context.get("progress", {}).get("actions_failed", 0)
         weeks_completed = context.get("progress", {}).get("weeks_completed", 0)
         
         print(f"\n  👤 User: {name}")
         print(f"  🎯 Target Role: {target_role}")
-        print(f"  📊 Confidence Score: {confidence:.0%}")
+        print(f"  📊 Confidence Score: {confidence:.0f}/100")
         print(f"  📈 Overall Progress: {progress:.0f}%")
         print(f"  ✅ Actions Completed: {actions_completed}")
         print(f"  ❌ Actions Failed: {actions_failed}")
