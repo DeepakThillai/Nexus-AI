@@ -797,8 +797,6 @@ When user accepts reroute suggestions:
 ```
 Nexus-AI/
 ├── 📄 README.md                          # Quick start guide
-├── 📄 COMPREHENSIVE_README.md            # This file
-├── 📄 FLOW_RESTRUCTURING_COMPLETE.md     # Flow architecture
 ├── 📄 requirements.txt                   # Python dependencies
 ├── 📄 .env                               # Configuration (secrets)
 ├── 📄 LICENSE                            # MIT License
