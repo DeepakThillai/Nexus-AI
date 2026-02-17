@@ -276,3 +276,158 @@ class UserContextManager:
         context_path = self.get_context_path(user_id)
         if context_path.exists():
             context_path.unlink()
+    
+    # ─────────────────────────────────────────────────
+    # NAME-BASED RETRIEVAL (Hackathon Convenience)
+    # ─────────────────────────────────────────────────
+    
+    def list_all_users(self) -> List[Dict[str, Any]]:
+        """
+        List all existing users with their names and basic info
+        
+        Returns:
+            List of dicts with user_id, name, email, target_role, progress info
+        """
+        users = []
+        
+        # Find all context files
+        for context_file in self.context_dir.glob("*_context.json"):
+            user_id = context_file.stem.replace("_context", "")
+            
+            try:
+                with open(context_file, 'r') as f:
+                    context = json.load(f)
+                
+                user_info = {
+                    "user_id": user_id,
+                    "name": context.get("profile", {}).get("name") or "Unknown",
+                    "email": context.get("profile", {}).get("email"),
+                    "target_role": context.get("career_state", {}).get("current_target_role"),
+                    "confidence_score": context.get("readiness_assessment", {}).get("confidence_score", 0),
+                    "progress_percentage": context.get("active_roadmap", {}).get("completion_percentage", 0),
+                    "weeks_completed": context.get("progress", {}).get("weeks_completed", 0),
+                    "last_updated": context.get("last_updated")
+                }
+                users.append(user_info)
+            except Exception as e:
+                print(f"Error loading context for {user_id}: {e}")
+                continue
+        
+        # Sort by name
+        users.sort(key=lambda x: x.get("name", "").lower())
+        return users
+    
+    def get_user_id_by_name(self, name: str) -> Optional[str]:
+        """
+        Get user_id from user name (case-insensitive)
+        
+        Args:
+            name: User's name (full or partial name)
+            
+        Returns:
+            user_id if found, None otherwise
+        """
+        name_lower = name.lower().strip()
+        users = self.list_all_users()
+        
+        # Exact match first
+        for user in users:
+            if user["name"].lower() == name_lower:
+                return user["user_id"]
+        
+        # Partial match
+        for user in users:
+            if name_lower in user["name"].lower():
+                return user["user_id"]
+        
+        return None
+    
+    def load_context_by_name(self, name: str) -> Optional[Dict[str, Any]]:
+        """
+        Load user context by name instead of ID
+        
+        Args:
+            name: User's name (full or partial name)
+            
+        Returns:
+            User context dict if found, None otherwise
+        """
+        user_id = self.get_user_id_by_name(name)
+        if user_id:
+            return self.load_context(user_id)
+        return None
+    
+    def get_user_progress_by_name(self, name: str) -> Optional[Dict[str, Any]]:
+        """
+        Get user progress by name - convenience method for hackathon
+        
+        Args:
+            name: User's name
+            
+        Returns:
+            Dict with progress info or None if user not found
+        """
+        context = self.load_context_by_name(name)
+        if not context:
+            return None
+        
+        return {
+            "user_id": context.get("user_id"),
+            "name": context.get("profile", {}).get("name"),
+            "target_role": context.get("career_state", {}).get("current_target_role"),
+            "confidence_score": context.get("readiness_assessment", {}).get("confidence_score", 0),
+            "skill_match_percentage": context.get("readiness_assessment", {}).get("skill_match_percentage", 0),
+            "roadmap_status": context.get("active_roadmap", {}).get("status"),
+            "completion_percentage": context.get("active_roadmap", {}).get("completion_percentage", 0),
+            "weeks_completed": context.get("progress", {}).get("weeks_completed", 0),
+            "actions_completed": context.get("progress", {}).get("actions_completed", 0),
+            "actions_failed": context.get("progress", {}).get("actions_failed", 0),
+            "current_week": context.get("active_roadmap", {}).get("current_week"),
+            "total_hours_invested": context.get("progress", {}).get("total_hours_invested", 0),
+            "last_activity": context.get("progress", {}).get("last_activity_at")
+        }
+    
+    # ─────────────────────────────────────────────────
+    # EMAIL-BASED RETRIEVAL (Unique Identifier)
+    # ─────────────────────────────────────────────────
+    
+    def get_user_id_by_email(self, email: str) -> Optional[str]:
+        """
+        Get user_id from email (case-insensitive)
+        
+        Args:
+            email: User's email address
+            
+        Returns:
+            user_id if found, None otherwise
+        """
+        email_lower = email.lower().strip()
+        
+        # Search through all context files
+        for context_file in self.context_dir.glob("*_context.json"):
+            try:
+                with open(context_file, 'r') as f:
+                    context = json.load(f)
+                
+                user_email = context.get("profile", {}).get("email")
+                if user_email and user_email.lower() == email_lower:
+                    return context.get("user_id")
+            except Exception:
+                continue
+        
+        return None
+    
+    def load_context_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        """
+        Load user context by email address
+        
+        Args:
+            email: User's email
+            
+        Returns:
+            User context dict if found, None otherwise
+        """
+        user_id = self.get_user_id_by_email(email)
+        if user_id:
+            return self.load_context(user_id)
+        return None

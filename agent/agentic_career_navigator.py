@@ -1389,25 +1389,136 @@ class Orchestrator:
         """Initialize or load existing user"""
         print_section("WELCOME TO AGENTIC CAREER NAVIGATOR")
         
-        choice = input("  [1] Create new profile\n  [2] Load existing profile\n  Your choice: ").strip()
+        choice = input("  [1] Create new profile\n  [2] Login with email\n  [3] Browse existing users\n  Your choice: ").strip()
         
         if choice == "2":
-            user_id = input("  Enter your user ID: ").strip()
-            try:
-                context = self.context_manager.load_context(user_id)
-                print(f"  ✓ Profile loaded: {context.get('profile', {}).get('name', 'User')}")
-                return user_id, context
-            except:
-                print("  ✗ User not found. Creating new profile...")
-                return self._create_new_user()
+            return self._load_existing_user_by_email()
+        elif choice == "3":
+            return self._load_existing_user_by_name()
         else:
+            return self._create_new_user()
+    
+    def _load_existing_user_by_email(self) -> tuple[str, Dict[str, Any]]:
+        """Load user by email (primary login method)"""
+        email = input("\n  Enter your email: ").strip()
+        
+        if not email:
+            print("  ✗ Email is required. Creating new profile...")
+            return self._create_new_user()
+        
+        user_id = self.context_manager.get_user_id_by_email(email)
+        
+        if user_id:
+            context = self.context_manager.load_context(user_id)
+            user_name = context.get('profile', {}).get('name') or 'User'
+            print(f"  ✓ Welcome back, {user_name}!")
+            return user_id, context
+        else:
+            print(f"  ✗ No account found for {email}.")
+            create = input("  Would you like to create a new account? (y/n): ").strip().lower()
+            if create == 'y':
+                return self._create_new_user_with_email(email)
+            else:
+                print("  Returning to main menu...")
+                return self._user_login()
+    
+    def _load_existing_user_by_name(self) -> tuple[str, Dict[str, Any]]:
+        """Load user by selecting from existing users by name"""
+        users = self.context_manager.list_all_users()
+        
+        if not users:
+            print("  ✗ No existing users found. Creating new profile...")
+            return self._create_new_user()
+        
+        print("\n  Available users:")
+        print(f"  {'#':<4} {'Name':<25} {'Email':<30} {'Role':<20}")
+        print("  " + "-"*79)
+        
+        for idx, user in enumerate(users, 1):
+            name = (user.get('name') or 'Unknown')[:24]
+            email = (user.get('email') or 'No email')[:29]
+            role = (user.get('target_role') or 'Not set')[:19]
+            print(f"  [{idx}]  {name:<25} {email:<30} {role:<20}")
+        
+        try:
+            choice = int(input(f"\n  Select user (1-{len(users)}): ").strip())
+            if 1 <= choice <= len(users):
+                selected_user = users[choice - 1]
+                user_id = selected_user['user_id']
+                context = self.context_manager.load_context(user_id)
+                selected_name = selected_user.get('name') or 'User'
+                print(f"  ✓ Profile loaded: {selected_name}")
+                return user_id, context
+            else:
+                print("  ✗ Invalid selection. Creating new profile...")
+                return self._create_new_user()
+        except ValueError:
+            print("  ✗ Invalid input. Creating new profile...")
             return self._create_new_user()
 
     def _create_new_user(self) -> tuple[str, Dict[str, Any]]:
-        """Create a new user profile"""
+        """Create a new user profile with name and email"""
+        print_section("CREATE NEW PROFILE")
+        
+        # Collect user information
+        name = input("  Enter your full name: ").strip()
+        email = input("  Enter your email: ").strip()
+        
+        # Validate email
+        if not email or '@' not in email:
+            print("  ✗ Valid email is required.")
+            return self._create_new_user()
+        
+        # Check if email already exists
+        existing_user_id = self.context_manager.get_user_id_by_email(email)
+        if existing_user_id:
+            print(f"  ✗ An account with email {email} already exists.")
+            load = input("  Would you like to load that account? (y/n): ").strip().lower()
+            if load == 'y':
+                context = self.context_manager.load_context(existing_user_id)
+                return existing_user_id, context
+            else:
+                return self._create_new_user()
+        
+        # Create new user
         user_id = f"user_{int(time.time())}"
         context = self.context_manager.initialize_context(user_id)
-        print(f"  ✓ New profile created. User ID: {user_id}")
+        
+        # Update profile with user info
+        context['profile']['name'] = name
+        context['profile']['email'] = email
+        self.context_manager.save_context(user_id, context)
+        
+        print(f"\n  ✓ Account created successfully!")
+        print(f"  Name: {name}")
+        print(f"  Email: {email}")
+        print(f"  User ID: {user_id}")
+        
+        return user_id, context
+    
+    def _create_new_user_with_email(self, email: str) -> tuple[str, Dict[str, Any]]:
+        """Create a new user profile with pre-filled email"""
+        print_section("CREATE NEW PROFILE")
+        
+        name = input("  Enter your full name: ").strip()
+        
+        if not name:
+            name = email.split('@')[0]  # Use email prefix as fallback
+        
+        # Create new user
+        user_id = f"user_{int(time.time())}"
+        context = self.context_manager.initialize_context(user_id)
+        
+        # Update profile with user info
+        context['profile']['name'] = name
+        context['profile']['email'] = email
+        self.context_manager.save_context(user_id, context)
+        
+        print(f"\n  ✓ Account created successfully!")
+        print(f"  Name: {name}")
+        print(f"  Email: {email}")
+        print(f"  User ID: {user_id}")
+        
         return user_id, context
 
     # ── Step 2: Resume vs Manual Skills Input ─────────────────────
@@ -1592,18 +1703,172 @@ class Orchestrator:
 
     # ── Main run method ───────────────────────────────────────────
 
+    def _has_existing_progress(self, context: Dict[str, Any]) -> bool:
+        """Check if user has existing progress/roadmap"""
+        has_target_role = context.get("career_state", {}).get("current_target_role") is not None
+        
+        # Check both possible roadmap structures
+        roadmap = context.get("active_roadmap", {})
+        has_phases = len(roadmap.get("phases", [])) > 0
+        has_steps = len(roadmap.get("steps", [])) > 0
+        has_generated_roadmap = roadmap.get("generated_for_role") is not None
+        
+        has_roadmap = has_phases or has_steps or has_generated_roadmap
+        
+        return has_target_role and has_roadmap
+    
+    def _show_returning_user_menu(self, user_id: str, context: Dict[str, Any]) -> str:
+        """Show menu for returning users"""
+        print_section("WELCOME BACK!")
+        
+        name = context.get("profile", {}).get("name", "User")
+        target_role = context.get("career_state", {}).get("current_target_role")
+        progress = context.get("active_roadmap", {}).get("completion_percentage", 0)
+        confidence = context.get("readiness_assessment", {}).get("confidence_score", 0)
+        
+        print(f"  Name: {name}")
+        print(f"  Current Goal: {target_role}")
+        print(f"  Progress: {progress:.0f}%")
+        print(f"  Confidence: {confidence:.0%}")
+        
+        print("\n  What would you like to do?")
+        print("  [1] Continue my current roadmap")
+        print("  [2] Start fresh with a new goal")
+        print("  [3] View my progress report")
+        
+        choice = input("\n  Your choice: ").strip()
+        return choice
+    
+    def _load_existing_roadmap(self, user_id: str, context: Dict[str, Any]) -> None:
+        """Load existing user roadmap into user_state"""
+        # Load profile data
+        self.user_state["profile"]["target_role"] = context.get("career_state", {}).get("current_target_role")
+        self.user_state["profile"]["skills"] = context.get("profile", {}).get("skills", [])
+        self.user_state["profile"]["strengths"] = context.get("profile", {}).get("strengths", [])
+        self.user_state["profile"]["weaknesses"] = context.get("profile", {}).get("weaknesses", [])
+        
+        # Load confidence and readiness
+        self.user_state["confidence_score"] = context.get("readiness_assessment", {}).get("confidence_score", 0)
+        self.user_state["readiness"] = context.get("readiness_assessment", {})
+        
+        # Load roadmap (handle both phases and steps structures)
+        active_roadmap = context.get("active_roadmap", {})
+        self.user_state["roadmap"] = active_roadmap
+        
+        # Load analytics
+        self.user_state["analytics"]["completed_actions_count"] = context.get("progress", {}).get("actions_completed", 0)
+        self.user_state["analytics"]["failed_actions_count"] = context.get("progress", {}).get("actions_failed", 0)
+        
+        # Determine total actions for progress calculation  
+        total_actions = 0
+        if "steps" in active_roadmap:
+            for step in active_roadmap.get("steps", []):
+                total_actions += len(step.get("actions", []))
+        elif "phases" in active_roadmap:
+            for phase in active_roadmap.get("phases", []):
+                total_actions += len(phase.get("actions", []))
+        
+        print(f"\n  ✓ Loaded existing roadmap for: {self.user_state['profile']['target_role']}")
+        print(f"  Actions completed: {self.user_state['analytics']['completed_actions_count']}/{total_actions}")
+        print(f"  Current confidence: {self.user_state['confidence_score']:.0%}")
+    
+    def _show_progress_summary(self, context: Dict[str, Any]) -> None:
+        """Display current progress summary"""
+        print_section("YOUR PROGRESS SUMMARY")
+        
+        name = context.get("profile", {}).get("name", "User")
+        target_role = context.get("career_state", {}).get("current_target_role", "Not set")
+        confidence = context.get("readiness_assessment", {}).get("confidence_score", 0)
+        progress = context.get("active_roadmap", {}).get("completion_percentage", 0)
+        actions_completed = context.get("progress", {}).get("actions_completed", 0)
+        actions_failed = context.get("progress", {}).get("actions_failed", 0)
+        weeks_completed = context.get("progress", {}).get("weeks_completed", 0)
+        
+        print(f"\n  👤 User: {name}")
+        print(f"  🎯 Target Role: {target_role}")
+        print(f"  📊 Confidence Score: {confidence:.0%}")
+        print(f"  📈 Overall Progress: {progress:.0f}%")
+        print(f"  ✅ Actions Completed: {actions_completed}")
+        print(f"  ❌ Actions Failed: {actions_failed}")
+        print(f"  📅 Weeks Completed: {weeks_completed}")
+        
+        # Show current week's actions
+        current_actions = context.get("current_actions", {}).get("this_week", [])
+        if current_actions:
+            print(f"\n  📋 This Week's Actions:")
+            for action in current_actions:
+                status = action.get("status", "pending")
+                print(f"     • {action.get('action_title')} [{status}]")
+        
+        print("\n")
+    
+    def _persist_final_state(self, user_id: str, context: Dict[str, Any]) -> None:
+        """Save final state to database"""
+        print_section("FINAL PERSISTENT STATE")
+        print_dict(self.user_state)
+        
+        # Extract current profile data from user_state
+        target_role = self.user_state["profile"]["target_role"]
+        skills = self.user_state["profile"]["skills"]
+        strengths = self.user_state["profile"]["strengths"]
+        weaknesses = self.user_state["profile"]["weaknesses"]
+        
+        # Prepare roadmap data with proper status
+        roadmap_data = self.user_state.get("roadmap", {})
+        if roadmap_data and roadmap_data.get("steps"):
+            roadmap_data["status"] = "in_progress" if self.user_state["analytics"]["completed_actions_count"] > 0 else "generated"
+        
+        # Persist final state
+        try:
+            print("\n  Saving to database...")
+            context.update({
+                "profile": {
+                    "target_role": target_role,
+                    "skills": skills,
+                    "strengths": strengths,
+                    "weaknesses": weaknesses,
+                    "name": context.get("profile", {}).get("name"),
+                    "email": context.get("profile", {}).get("email"),
+                    "phone": context.get("profile", {}).get("phone"),
+                    "experience_years": context.get("profile", {}).get("experience_years", 0),
+                    "resume_uploaded": context.get("profile", {}).get("resume_uploaded", False),
+                    "resume_uploaded_at": context.get("profile", {}).get("resume_uploaded_at"),
+                    "resume_file_name": context.get("profile", {}).get("resume_file_name")
+                },
+                "career_state": {
+                    "current_target_role": target_role,
+                    "role_history": context.get("career_state", {}).get("role_history", [])
+                },
+                "readiness_assessment": self.user_state.get("readiness", {}),
+                "active_roadmap": roadmap_data,
+                "progress": {
+                    "actions_completed": self.user_state["analytics"]["completed_actions_count"],
+                    "actions_failed": self.user_state["analytics"]["failed_actions_count"],
+                    "weeks_completed": context.get("progress", {}).get("weeks_completed", 0),
+                    "last_activity_at": datetime.now().isoformat()
+                }
+            })
+            self.context_manager.save_context(user_id, context)
+            self.mongo.sync(user_id, context)
+            print(f"  ✓ Profile saved to database (User ID: {user_id})")
+        except Exception as e:
+            print(f"  ⚠ Database save error: {str(e)[:100]}")
+        
+        print("\n  ✓ Session complete!\n")
+
     def run(self) -> None:
         """
         Complete flow:
           1. User Login/Create Account
-          2. Resume Upload OR Manual Skills Entry
-          3. Get Target Role
-          4. Run Readiness Assessment
-          5. Market Intelligence
-          6. Roadmap Generation
-          7. Action Assessment Loop
-          8. Final Feedback
-          9. Persist everything to MongoDB
+          2. Check if returning user with progress
+          3. Resume Upload OR Manual Skills Entry (for new/fresh start)
+          4. Get Target Role
+          5. Run Readiness Assessment
+          6. Market Intelligence
+          7. Roadmap Generation
+          8. Action Assessment Loop
+          9. Final Feedback
+          10. Persist everything to MongoDB
         """
         print("\n" + "╔" + "═"*58 + "╗")
         print("║        AGENTIC CAREER NAVIGATOR                        ║")
@@ -1613,7 +1878,24 @@ class Orchestrator:
         # Step 1: User Login
         user_id, context = self._user_login()
         
-        # Step 2: Get Skills (Resume or Manual)
+        # Step 2: Check if returning user with existing progress
+        if self._has_existing_progress(context):
+            choice = self._show_returning_user_menu(user_id, context)
+            
+            if choice == "1":
+                # Load existing data and continue
+                self._load_existing_roadmap(user_id, context)
+                self._run_action_loop()
+                self._run_feedback()
+                self._persist_final_state(user_id, context)
+                return
+            elif choice == "3":
+                # Show progress and exit
+                self._show_progress_summary(context)
+                return
+            # else choice == "2" or invalid: continue with fresh start below
+        
+        # Step 3: Get Skills (Resume or Manual) - for new users or fresh start
         skills_input = self._get_initial_skills(user_id, context)
         skills = skills_input.get("skills", [])
         strengths = skills_input.get("strengths", [])
@@ -1644,35 +1926,106 @@ class Orchestrator:
         self._run_feedback()
         
         # Step 9: Final save to database
-        print_section("FINAL PERSISTENT STATE")
-        print_dict(self.user_state)
-        
-        # Persist final state
-        try:
-            print("\n  Saving to database...")
-            context.update({
-                "profile": {
-                    "target_role": target_role,
-                    "skills": skills,
-                    "strengths": strengths,
-                    "weaknesses": weaknesses,
-                    "name": context.get("profile", {}).get("name"),
-                    "email": context.get("profile", {}).get("email"),
-                    "phone": context.get("profile", {}).get("phone"),
-                    "experience_years": context.get("profile", {}).get("experience_years", 0),
-                    "resume_uploaded": context.get("profile", {}).get("resume_uploaded", False),
-                    "resume_uploaded_at": context.get("profile", {}).get("resume_uploaded_at"),
-                    "resume_file_name": context.get("profile", {}).get("resume_file_name")
-                }
-            })
-            self.context_manager.save_context(user_id, context)
-            self.mongo.sync(user_id, context)
-            print(f"  ✓ Profile saved to MongoDB (User ID: {user_id})")
-        except Exception as e:
-            print(f"  ⚠ Database save error: {str(e)[:100]}")
-        
-        print("\n  ✓ Session complete!\n")
+        self._persist_final_state(user_id, context)
 
+
+# ═══════════════════════════════════════════════════════════════════
+#  UTILITY FUNCTIONS (View Progress / User Management)
+# ═══════════════════════════════════════════════════════════════════
+
+def view_all_users() -> None:
+    """Display all existing users with their progress"""
+    manager = UserContextManager()
+    users = manager.list_all_users()
+    
+    if not users:
+        print("❌ No existing users found.\n")
+        return
+    
+    print("\n" + "="*120)
+    print("📊 ALL USERS - PROGRESS OVERVIEW".center(120))
+    print("="*120)
+    print(f"{'#':<3} {'Name':<25} {'Email':<30} {'Target Role':<20} {'Progress':<12} {'Weeks':<8}")
+    print("-"*120)
+    
+    for idx, user in enumerate(users, 1):
+        name = (user.get('name') or 'Unknown')[:24]
+        email = (user.get('email') or 'No email')[:29]
+        role = (user.get('target_role') or 'Not set')[:19]
+        progress = f"{user.get('progress_percentage', 0):.0f}%"
+        weeks = user.get('weeks_completed', 0)
+        print(f"{idx:<3} {name:<25} {email:<30} {role:<20} {progress:<12} {weeks:<8}")
+    
+    print("="*120 + "\n")
+
+
+def view_user_progress(name: str) -> None:
+    """Display detailed progress for a specific user"""
+    manager = UserContextManager()
+    progress = manager.get_user_progress_by_name(name)
+    
+    if not progress:
+        print(f"\n❌ User '{name}' not found.")
+        view_all_users()
+        return
+    
+    display_name = (progress['name'] or 'Unknown').upper()
+    print("\n" + "="*80)
+    print(f"📈 PROGRESS FOR {display_name}".center(80))
+    print("="*80)
+    
+    print(f"\n🎯 Career Target: {progress['target_role'] or 'Not set'}")
+    print(f"   User ID: {progress['user_id']}")
+    
+    print(f"\n📊 Readiness Assessment:")
+    print(f"   Confidence Score: {progress['confidence_score']:.1%}")
+    print(f"   Skill Match: {progress['skill_match_percentage']}%")
+    
+    print(f"\n🗺️  Roadmap Status:")
+    print(f"   Status: {progress['roadmap_status'] or 'Not started'}")
+    print(f"   Overall Progress: {progress['completion_percentage']:.0f}%")
+    print(f"   Current Week: {progress['current_week'] or 'N/A'}")
+    print(f"   Weeks Completed: {progress['weeks_completed']}")
+    
+    print(f"\n✅ Actions Tracking:")
+    print(f"   Completed: {progress['actions_completed']}")
+    print(f"   Failed: {progress['actions_failed']}")
+    print(f"   Total Hours Invested: {progress['total_hours_invested']:.1f}h")
+    
+    print(f"\n🕐 Last Activity: {progress['last_activity'] or 'Never'}")
+    print("="*80 + "\n")
+
+
+def view_user_menu() -> None:
+    """Interactive menu to view user progress"""
+    while True:
+        print("\n" + "="*80)
+        print("📋 USER MANAGEMENT & PROGRESS VIEWER".center(80))
+        print("="*80)
+        print("\n1. List all users")
+        print("2. View progress by name")
+        print("3. List users & enter full agent")
+        print("4. Exit")
+        print("\n" + "="*80)
+        
+        choice = input("\nSelect option (1-4): ").strip()
+        
+        if choice == "1":
+            view_all_users()
+        elif choice == "2":
+            name = input("\nEnter user name (or partial name): ").strip()
+            if name:
+                view_user_progress(name)
+            else:
+                print("❌ Please enter a name.")
+        elif choice == "3":
+            orchestrator = Orchestrator()
+            orchestrator.run()
+        elif choice == "4":
+            print("\n👋 Goodbye!\n")
+            break
+        else:
+            print("❌ Invalid option. Please try again.")
 
 # ═══════════════════════════════════════════════════════════════════
 #  ENTRY POINT
@@ -1680,11 +2033,32 @@ class Orchestrator:
 
 def main():
     """
-    Launch the Agentic Career Navigator for one user session.
-    The Orchestrator coordinates all agents and maintains state.
+    Main entry point with menu to choose between:
+    - Run full agent session
+    - View user progress
+    - Exit
     """
-    orchestrator = Orchestrator()
-    orchestrator.run()
+    while True:
+        print("\n" + "="*80)
+        print("🚀 AGENTIC CAREER NAVIGATOR - MAIN MENU".center(80))
+        print("="*80)
+        print("\n1. Start/Continue Career Session")
+        print("2. View User Progress & Management")
+        print("3. Exit")
+        print("\n" + "="*80)
+        
+        choice = input("\nSelect option (1-3): ").strip()
+        
+        if choice == "1":
+            orchestrator = Orchestrator()
+            orchestrator.run()
+        elif choice == "2":
+            view_user_menu()
+        elif choice == "3":
+            print("\n👋 Thank you for using Agentic Career Navigator!\n")
+            break
+        else:
+            print("❌ Invalid option. Please try again.")
 
 
 if __name__ == "__main__":
