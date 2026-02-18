@@ -6,12 +6,16 @@ No business logic lives here.
 """
 
 import os
+import asyncio
 from contextlib import asynccontextmanager
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+import tempfile
+import time
+import shutil
 
 try:
     from dotenv import load_dotenv
@@ -317,6 +321,85 @@ async def extract_resume_skills(body: dict):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  11. RESUME FILE UPLOAD (PDF/Image)
+#  POST /api/resume/upload
+# ═══════════════════════════════════════════════════════════════════
+
+@app.post("/api/resume/upload")
+async def upload_resume(file: UploadFile = File(...), user_id: str = Form(...)):
+    """
+    Upload and analyze resume file (PDF, PNG, JPG).
+    Extracts text, parses structure, and returns skills.
+    
+    Parameters:
+        file: Resume file (PDF/PNG/JPG)
+        user_id: User ID (from form data)
+    """
+    tmp_path = None
+    try:
+        if not user_id:
+            user_id = "temp-user"
+        
+        if not file:
+            raise ValueError("file is required")
+        
+        # Validate file type
+        allowed_types = {"application/pdf", "image/png", "image/jpeg"}
+        if file.content_type not in allowed_types:
+            raise ValueError(
+                f"Invalid file type: {file.content_type}. "
+                f"Allowed: PDF, PNG, JPEG"
+            )
+        
+        # Read file contents
+        contents = await file.read()
+        if not contents:
+            raise ValueError("File is empty")
+        
+        # Create temp file with proper extension
+        file_ext = os.path.splitext(file.filename)[1].lower()
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp:
+            tmp_path = tmp.name
+            tmp.write(contents)
+            # Explicitly flush and close to ensure file is written
+            tmp.flush()
+            os.fsync(tmp.fileno())
+        
+        # Small delay to ensure file handle is fully released (Windows)
+        await asyncio.sleep(0.1)
+        
+        # Verify file exists before processing
+        if not os.path.exists(tmp_path):
+            raise ValueError("Failed to create temporary file")
+        
+        # Process resume with ResumeAnalyzerAgent
+        result = ow.analyze_resume_file(
+            user_id=user_id,
+            file_path=tmp_path,
+            file_name=file.filename
+        )
+        
+        return JSONResponse(content=result)
+    
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(f"Resume upload error: {str(e)[:100]}")
+        raise HTTPException(status_code=500, detail=f"Failed to process resume: {str(e)[:100]}")
+    finally:
+        # Clean up temp file with retry logic
+        if tmp_path and os.path.exists(tmp_path):
+            try:
+                os.remove(tmp_path)
+            except (OSError, PermissionError):
+                # If immediate removal fails, schedule for deletion on exit
+                try:
+                    shutil.move(tmp_path, os.path.join(tempfile.gettempdir(), f"nexus_cleanup_{int(time.time())}"))
+                except:
+                    pass  # Best effort cleanup
 
 
 # ═══════════════════════════════════════════════════════════════════

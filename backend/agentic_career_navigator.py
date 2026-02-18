@@ -53,6 +53,12 @@ except ImportError:
     _PDF_AVAILABLE = False
 
 try:
+    import PyPDF2
+    _PYPDF2_AVAILABLE = True
+except ImportError:
+    _PYPDF2_AVAILABLE = False
+
+try:
     import pytesseract
     from PIL import Image
     _OCR_AVAILABLE = True
@@ -182,14 +188,45 @@ class ResumeAnalyzerAgent:
         self.context_manager = UserContextManager()
 
     def extract_text_from_pdf(self, pdf_path: str) -> str:
-        """Extract text from PDF using pdfminer.six"""
+        """Extract text from PDF using pdfminer.six with PyPDF2 fallback"""
         if not _PDF_AVAILABLE:
             return ""
         try:
+            # Verify file exists and is readable
+            if not os.path.exists(pdf_path):
+                raise FileNotFoundError(f"PDF file not found: {pdf_path}")
+            
+            # Try primary extraction with pdfminer
             text = extract_text(pdf_path)
-            return text.strip()
+            extracted_text = text.strip()
+            
+            if extracted_text and len(extracted_text) > 50:
+                return extracted_text
+            
+            # If extraction returned too little text, try PyPDF2 as fallback
+            if _PYPDF2_AVAILABLE:
+                print(f"  [Resume] PDF text sparse, trying PyPDF2 fallback...")
+                try:
+                    with open(pdf_path, 'rb') as f:
+                        reader = PyPDF2.PdfReader(f)
+                        text = ""
+                        for page in reader.pages:
+                            text += page.extract_text()
+                    if text and len(text.strip()) > 50:
+                        return text.strip()
+                except Exception as alt_e:
+                    print(f"  [Resume] PyPDF2 fallback failed: {str(alt_e)[:50]}")
+            
+            return extracted_text
+        
         except Exception as e:
-            print(f"  [Resume] PDF extraction error: {str(e)[:50]}")
+            error_msg = str(e)[:100]
+            print(f"  [Resume] PDF extraction error: {error_msg}")
+            
+            # Provide helpful feedback for common errors
+            if "EOF" in error_msg or "corrupt" in error_msg.lower():
+                print(f"  [Resume] Hint: PDF might be corrupted or encrypted. Try using a screenshot image instead.")
+            
             return ""
 
     def extract_text_from_image(self, image_path: str) -> str:

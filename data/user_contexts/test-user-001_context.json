@@ -1,0 +1,284 @@
+{
+  "user_id": "test-user-001",
+  "created_at": "2026-02-18T08:17:43.097933",
+  "last_updated": "2026-02-18T08:18:34.867959",
+  "profile": {
+    "name": "John Developer",
+    "email": "john@example.com",
+    "phone": "(555) 123-4567",
+    "education": {
+      "degree": "Bachelor of Science in Computer Science, State University, 2019",
+      "institution": null,
+      "graduation_year": null,
+      "cgpa": null
+    },
+    "experience_years": 5,
+    "skills": {
+      "technical": [
+        "Python",
+        "JavaScript",
+        "TypeScript",
+        "Java",
+        "C++",
+        "SQL"
+      ],
+      "frameworks": [
+        "Django",
+        "Flask",
+        "FastAPI",
+        "React.js",
+        "Next.js",
+        "Vue.js",
+        "Node.js",
+        "Express.js",
+        "Tailwind CSS"
+      ],
+      "databases": [
+        "MongoDB",
+        "PostgreSQL",
+        "MySQL",
+        "Redis",
+        "Firebase",
+        "DynamoDB"
+      ],
+      "tools": [
+        "Docker",
+        "Kubernetes",
+        "Git",
+        "GitHub",
+        "GitLab",
+        "Jira",
+        "Jenkins",
+        "CircleCI",
+        "Linux",
+        "Nginx",
+        "Apache",
+        "GitHub Actions",
+        "AWS",
+        "Google Cloud Platform",
+        "Azure"
+      ],
+      "soft_skills": [
+        "Team leadership",
+        "Project management",
+        "Communication"
+      ]
+    },
+    "projects": [
+      {
+        "name": "Tech Corporation Microservices Platform",
+        "description": "Led a team of 5 developers to build microservices using Python, Docker, and AWS ECS; designed REST APIs with Django REST Framework and FastAPI; created responsive React interfaces; managed PostgreSQL and MongoDB databases; set up CI/CD pipelines with GitHub Actions and Jenkins; deployed on AWS Kubernetes.",
+        "technologies": [
+          "Python",
+          "Docker",
+          "AWS ECS",
+          "Kubernetes",
+          "Django REST Framework",
+          "FastAPI",
+          "React",
+          "Tailwind CSS",
+          "PostgreSQL",
+          "MongoDB",
+          "GitHub Actions",
+          "Jenkins"
+        ]
+      },
+      {
+        "name": "StartUp Inc Full-Stack Application",
+        "description": "Developed full-stack web applications using Node.js, React, and MongoDB; implemented authentication and authorization; optimized performance reducing load times by 40%; managed AWS infrastructure and EC2 instances.",
+        "technologies": [
+          "Node.js",
+          "React",
+          "MongoDB",
+          "AWS EC2",
+          "Authentication",
+          "Authorization"
+        ]
+      }
+    ],
+    "certifications": [],
+    "achievements": [
+      "Reduced application load times by 40% at StartUp Inc.",
+      "Led a team of 5 developers to deliver microservices platform at Tech Corporation."
+    ],
+    "languages": [],
+    "linkedin": null,
+    "github": null,
+    "resume_uploaded": true,
+    "resume_uploaded_at": "2026-02-18T08:18:34.867959",
+    "resume_file_name": "sample_resume.pdf"
+  },
+  "career_state": {
+    "current_target_role": null,
+    "original_target_role": null,
+    "role_tier": null,
+    "role_history": []
+  },
+  "readiness_assessment": {
+    "status": null,
+    "confidence_score": 0.0,
+    "skill_match_percentage": 0,
+    "matched_skills": [],
+    "missing_skills": [],
+    "surplus_skills": [],
+    "recommendation": null,
+    "reasoning": null,
+    "last_assessed_at": null,
+    "assessment_history": []
+  },
+  "active_roadmap": {
+    "roadmap_id": null,
+    "created_at": null,
+    "duration_months": 5,
+    "total_weeks": 20,
+    "current_phase": null,
+    "current_week": null,
+    "completion_percentage": 0,
+    "phases": [],
+    "status": "not_started"
+  },
+  "progress": {
+    "weeks_completed": 0,
+    "actions_completed": 0,
+    "actions_failed": 0,
+    "current_streak_weeks": 0,
+    "total_hours_invested": 0,
+    "last_activity_at": null,
+    "weekly_engagement": {}
+  },
+  "reroute_state": {
+    "is_active": false,
+    "reroute_count": 0,
+    "original_roadmap_id": null,
+    "reroute_reason": null,
+    "reroute_options": [],
+    "selected_option": null,
+    "rerouted_at": null,
+    "can_return_to_previous": true
+  },
+  "current_actions": {
+    "this_week": [],
+    "upcoming": [],
+    "blocked": []
+  },
+  "resume_analysis": {
+    "parsed_profile": {
+      "name": "John Developer",
+      "email": "john@example.com",
+      "phone": "(555) 123-4567",
+      "location": "San Francisco, CA",
+      "linkedin": null,
+      "github": null,
+      "experience_years": 5,
+      "job_titles": [
+        "Senior Full-Stack Developer",
+        "Full-Stack Developer"
+      ],
+      "education": [
+        "Bachelor of Science in Computer Science, State University, 2019"
+      ],
+      "certifications": []
+    },
+    "extracted_skills": {
+      "programming_languages": [
+        "Python",
+        "JavaScript",
+        "TypeScript",
+        "Java",
+        "C++",
+        "SQL"
+      ],
+      "frameworks": [
+        "Django",
+        "Flask",
+        "FastAPI",
+        "React.js",
+        "Next.js",
+        "Vue.js",
+        "Node.js",
+        "Express.js",
+        "Tailwind CSS"
+      ],
+      "databases": [
+        "MongoDB",
+        "PostgreSQL",
+        "MySQL",
+        "Redis",
+        "Firebase",
+        "DynamoDB"
+      ],
+      "cloud_platforms": [
+        "AWS",
+        "Google Cloud Platform",
+        "Azure"
+      ],
+      "tools": [
+        "Docker",
+        "Kubernetes",
+        "Git",
+        "GitHub",
+        "GitLab",
+        "Jira",
+        "Jenkins",
+        "CircleCI",
+        "Linux",
+        "Nginx",
+        "Apache",
+        "GitHub Actions"
+      ],
+      "soft_skills": [
+        "Team leadership",
+        "Project management",
+        "Communication"
+      ]
+    },
+    "normalized_skills": [
+      "apache",
+      "aws",
+      "azure",
+      "c++",
+      "circleci",
+      "communication",
+      "django",
+      "docker",
+      "dynamodb",
+      "express.js",
+      "fastapi",
+      "firebase",
+      "flask",
+      "git",
+      "github",
+      "github actions",
+      "gitlab",
+      "google cloud platform",
+      "java",
+      "javascript",
+      "jenkins",
+      "jira",
+      "kubernetes",
+      "linux",
+      "mongodb",
+      "mysql",
+      "next.js",
+      "nginx",
+      "node.js",
+      "postgresql",
+      "project management",
+      "python",
+      "react.js",
+      "redis",
+      "sql",
+      "tailwind css",
+      "team leadership",
+      "typescript",
+      "vue.js"
+    ],
+    "extraction_method": "pdf",
+    "processing_time_seconds": 4.34
+  },
+  "metadata": {
+    "total_sessions": 0,
+    "agent_interaction_count": {},
+    "system_events": []
+  }
+}

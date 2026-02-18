@@ -121,25 +121,34 @@ class Database:
 
     def upsert_user(self, user_id: str, data: dict) -> bool:
         if not self.available:
+            print(f"[DB] upsert_user: Database not available")
             return False
         try:
             # CRITICAL: Validate before saving (prevents sentinel value corruption)
             _validate_no_sentinel_values(data)
+            print(f"[DB] upsert_user: Validation passed for {user_id}")
             
             doc = {k: v for k, v in data.items() if k != "_id"}
             doc["user_id"]     = user_id
             doc["last_updated"] = datetime.utcnow().isoformat()
-            self._collection.update_one(
+            
+            print(f"[DB] upsert_user: Calling MongoDB update_one for {user_id}")
+            result = self._collection.update_one(
                 {"user_id": user_id},
                 {"$set": doc},
                 upsert=True,
             )
+            print(f"[DB] upsert_user: MongoDB result - matched: {result.matched_count}, upserted: {result.upserted_id}, modified: {result.modified_count}")
             return True
         except ValueError as e:
             print(f"[DB] VALIDATION ERROR - {e}")
+            import traceback
+            traceback.print_exc()
             return False
         except Exception as e:
             print(f"[DB] upsert error: {e}")
+            import traceback
+            traceback.print_exc()
             return False
 
     def get_user(self, user_id: str) -> Optional[dict]:

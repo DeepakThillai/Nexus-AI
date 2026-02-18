@@ -219,9 +219,11 @@ def onboard_user(data: dict) -> dict:
     if data.get("target_role") == "__email_check__":
         # This is an email check, not an onboarding
         normalized_email = data.get("email", "").lower().strip()
+        print(f"[onboard] Email check for: {normalized_email}")
         existing = db.find_by_email(normalized_email)
         if existing:
             # Return existing user immediately - no DB modifications
+            print(f"[onboard] Found existing user: {existing['user_id']}")
             clean_profile = existing["profile"].copy()
             # Double-check: sanitize profile if sentinel leaked in
             if clean_profile.get("target_role") == "__email_check__":
@@ -229,13 +231,22 @@ def onboard_user(data: dict) -> dict:
             return {"user_id": existing["user_id"], "profile": clean_profile, "exists": True}
         else:
             # New user email check - create with empty target_role (NOT sentinel)
+            print(f"[onboard] No existing user found. Creating new user...")
             raw_id = f"user_{int(time.time() * 1000)}"
             user_id = raw_id
             target_role = ""  # Empty, NOT sentinel
             
             # Build minimal document for new user
             user_doc = _build_user_document(user_id, normalized_email, target_role, data)
-            db.upsert_user(user_id, user_doc)
+            print(f"[onboard] Built user doc for {user_id}")
+            
+            # Save to database
+            save_result = db.upsert_user(user_id, user_doc)
+            print(f"[onboard] db.upsert_user returned: {save_result}")
+            
+            if not save_result:
+                print(f"[onboard] ERROR: upsert_user failed to save user!")
+                # Still return success response, but note the failure
             
             return {
                 "user_id": user_id,
@@ -248,6 +259,7 @@ def onboard_user(data: dict) -> dict:
     
     # Normalize email: lowercase and strip whitespace (case-insensitive lookups)
     normalized_email = data.get("email", "").lower().strip()
+    print(f"[onboard] Processing onboarding form for: {normalized_email}")
     
     # Sanitize target_role: never allow sentinel value to be saved
     target_role = data.get("target_role", "")
@@ -260,6 +272,8 @@ def onboard_user(data: dict) -> dict:
     # Check if email already exists (use normalized email for lookup)
     existing = db.find_by_email(normalized_email)
     if existing:
+        print(f"[onboard] Found existing user for {normalized_email}")
+        print(f"[onboard] Using existing user_id: {existing['user_id']}")
         # If this is just an email check (not a real onboarding), return immediately
         if data.get("target_role") == "__email_check__":
             # Return existing user WITHOUT modifying database
@@ -332,6 +346,7 @@ def onboard_user(data: dict) -> dict:
         return {"user_id": existing["user_id"], "profile": updated_profile, "exists": True}
 
     db.upsert_user(user_id, user_doc)
+    print(f"[onboard] Created new user: {user_id}")
 
     # Trigger market intelligence immediately (only if target_role was provided)
     if target_role:
@@ -902,3 +917,124 @@ def hands_on_chat(user_id: str, message: str, conversation_history: List[dict]) 
     ]
 
     return {"reply": reply, "conversation_history": updated_history}
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  BONUS: RESUME SKILLS EXTRACTION
+# ═══════════════════════════════════════════════════════════════════
+
+def extract_skills_from_resume(resume_text: str) -> dict:
+    """
+    Extract skills from resume text using LLM.
+    Used during onboarding when user uploads resume instead of manual entry.
+    Returns list of extracted skills that user can add to their profile.
+    """
+    if not resume_text or not resume_text.strip():
+        return {"skills": [], "message": "Resume text is empty"}
+    
+    try:
+        system_prompt = "You are an expert resume parser. Extract technical and professional skills from resumes and return them as a JSON object with a 'skills' array."
+        
+        user_prompt = f"""
+Extract all technical and professional skills from this resume. 
+Return ONLY a JSON object with a "skills" array of skill names (strings).
+Be specific and practical. Include tools, languages, frameworks, methods, etc.
+
+Resume:
+{resume_text}
+
+Return format (ONLY JSON):
+{{"skills": ["skill1", "skill2", "skill3", ...]}}
+"""
+        
+        response = call_llm(system_prompt, user_prompt, max_tokens=1024)
+        
+        # Try to extract JSON from response
+        try:
+            result = extract_json(response)
+            if isinstance(result, dict) and "skills" in result:
+                skills = result["skills"]
+                # Ensure all items are strings
+                skills = [str(s).strip() for s in skills if s]
+                return {
+                    "skills": skills,
+                    "message": f"Extracted {len(skills)} skills from resume"
+                }
+        except:
+            pass
+        
+        # Fallback: try to parse response as JSON
+        try:
+            import json as json_module
+            cleaned = response.strip()
+            if cleaned.startswith('{'):
+                result = json_module.loads(cleaned)
+                if "skills" in result:
+                    skills = result["skills"]
+                    skills = [str(s).strip() for s in skills if s]
+                    return {
+                        "skills": skills,
+                        "message": f"Extracted {len(skills)} skills from resume"
+                    }
+        except:
+            pass
+        
+        # If all else fails, return empty but don't error
+        return {
+            "skills": [],
+            "message": "Could not parse skills from resume. Please enter manually."
+        }
+        
+    except Exception as e:
+        print(f"[extract_skills] Error: {e}")
+        return {
+            "skills": [],
+            "message": f"Error extracting skills: {str(e)}"
+        }
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  RESUME FILE ANALYSIS (using ResumeAnalyzerAgent)
+# ═══════════════════════════════════════════════════════════════════
+
+def analyze_resume_file(user_id: str, file_path: str, file_name: str) -> dict:
+    """
+    Analyze resume file (PDF or image) using ResumeAnalyzerAgent.
+    Extracts text, parses structure, and stores in database.
+    
+    Returns:
+        {
+            "status": "success" | "error",
+            "message": str,
+            "parsed_profile": dict,
+            "extracted_skills": dict,
+            "normalized_skills": list[str],
+            "skill_gap_analysis": dict (optional)
+        }
+    """
+    try:
+        from agentic_career_navigator import ResumeAnalyzerAgent
+        
+        print(f"[Resume Analysis] Processing {file_name} for user {user_id}...")
+        
+        agent = ResumeAnalyzerAgent()
+        result = agent.run({
+            "user_id": user_id,
+            "file_path": file_path,
+            "file_name": file_name
+        })
+        
+        return result
+        
+    except ImportError:
+        return {
+            "status": "error",
+            "message": "ResumeAnalyzerAgent not available"
+        }
+    except Exception as e:
+        print(f"[Resume Analysis] Error: {str(e)[:100]}")
+        return {
+            "status": "error",
+            "message": f"Failed to analyze resume: {str(e)[:100]}"
+        }
+

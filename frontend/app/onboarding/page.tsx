@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronRight, ChevronLeft, Plus, X, Loader2, Briefcase, Zap, Star, AlertTriangle } from "lucide-react";
+import { ChevronRight, ChevronLeft, Plus, X, Loader2, Briefcase, Zap, Star, AlertTriangle, Upload } from "lucide-react";
 import { onboardUser } from "@/lib/api";
 import { useStore } from "@/store/useStore";
 import ParticleBackground from "@/components/ParticleBackground";
@@ -55,6 +55,9 @@ export default function OnboardingPage() {
   const [step,      setStep]      = useState(0);
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState("");
+  const [resumeLoading, setResumeLoading] = useState(false);
+  const [useResume, setUseResume] = useState(false);  // Toggle between manual and resume
+  const [extractedData, setExtractedData] = useState<any>(null); // Store extracted profile data
 
   // Form state
   const [name,       setName]       = useState("");
@@ -64,6 +67,79 @@ export default function OnboardingPage() {
   const [strengths,  setStrengths]  = useState<string[]>([]);
   const [weaknesses, setWeaknesses] = useState<string[]>([]);
   const [targetRole, setTargetRole] = useState("");
+
+  // Resume upload handler
+  async function handleResumeUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ["application/pdf", "image/png", "image/jpeg"];
+    if (!validTypes.includes(file.type)) {
+      setError("Invalid file type. Please upload PDF, PNG, or JPG.");
+      return;
+    }
+
+    setResumeLoading(true);
+    setError("");
+    try {
+      // Create FormData for multipart upload
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("user_id", userId || "temp-user");
+
+      console.log("📄 Uploading resume:", file.name);
+
+      // Call API with file upload
+      const response = await fetch("http://localhost:8000/api/resume/upload", {
+        method: "POST",
+        body: formData, // Don't set Content-Type header - browser will set it with boundary
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to extract skills from resume");
+      }
+
+      const data = await response.json();
+      console.log("✅ Resume analysis result:", data);
+
+      if (data.status === "success") {
+        // Extract normalized skills from response
+        const extractedSkills = data.normalized_skills || [];
+        console.log(`✓ Extracted ${extractedSkills.length} skills from resume`);
+
+        // Store extracted data for later use
+        setExtractedData(data);
+
+        // Auto-populate name and phone if available
+        const parsedProfile = data.parsed_profile || {};
+        if (parsedProfile.name && !name) {
+          setName(parsedProfile.name);
+        }
+        if (parsedProfile.phone && !phone) {
+          setPhone(parsedProfile.phone);
+        }
+        if (parsedProfile.experience_years && expYears === 0) {
+          setExpYears(parsedProfile.experience_years);
+        }
+
+        // Add extracted skills to existing skills (avoid duplicates)
+        const newSkills = [...new Set([...skills, ...extractedSkills])];
+        setSkills(newSkills);
+        setError(""); // Clear any error
+      } else {
+        throw new Error(data.message || "Failed to process resume");
+      }
+    } catch (err: any) {
+      console.error("❌ Resume upload error:", err);
+      setError(err.message || "Failed to extract skills from resume");
+    } finally {
+      setResumeLoading(false);
+      // Clear file input
+      if (e.target) e.target.value = "";
+    }
+  }
 
   async function handleSubmit() {
     setLoading(true);
@@ -157,7 +233,115 @@ export default function OnboardingPage() {
               <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
                 <h2 className="text-2xl font-black mb-1">Skills & Attributes</h2>
                 <p className="text-white/40 text-sm mb-6">Press Enter or click + to add each item.</p>
-                <TagInput label="Current Skills" value={skills} onChange={setSkills} placeholder="e.g. Python, React" icon={Zap} color="text-blue-400" />
+                
+                {/* Resume Upload Toggle */}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setUseResume(false)}
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+                      !useResume
+                        ? "bg-blue-600 text-white shadow-glow"
+                        : "bg-white/5 text-white/60 hover:bg-white/10"
+                    }`}
+                  >
+                    Manual Entry
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUseResume(true)}
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+                      useResume
+                        ? "bg-blue-600 text-white shadow-glow"
+                        : "bg-white/5 text-white/60 hover:bg-white/10"
+                    }`}
+                  >
+                    Upload Resume
+                  </button>
+                </div>
+
+                {/* Resume Upload Section */}
+                {useResume && (
+                  <div className="space-y-3">
+                    <label className="block text-sm font-medium text-white/60">Upload Resume (PDF/TXT)</label>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg"
+                        onChange={handleResumeUpload}
+                        disabled={resumeLoading}
+                        className="hidden"
+                        id="resume-upload"
+                      />
+                      <label
+                        htmlFor="resume-upload"
+                        className={`block w-full p-4 border-2 border-dashed border-blue-500/30 rounded-xl hover:border-blue-500/50 cursor-pointer transition-all text-center ${
+                          resumeLoading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                      >
+                        {resumeLoading ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <Loader2 size={16} className="animate-spin" />
+                            Extracting skills...
+                          </div>
+                        ) : (
+                          <div className="text-white/60">
+                            <Upload size={20} className="mx-auto mb-2 opacity-60" />
+                            Click to upload resume (PDF/PNG/JPG)
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                    {skills.length > 0 && (
+                      <div className="text-sm text-green-400 flex items-center gap-2">
+                        ✓ {skills.length} skills extracted
+                      </div>
+                    )}
+                    
+                    {extractedData && (
+                      <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg text-sm text-white/70 space-y-1">
+                        <div className="font-semibold text-blue-400 mb-2">📋 Extracted Profile Data</div>
+                        {extractedData.parsed_profile?.name && (
+                          <div>Name: <span className="text-white">{extractedData.parsed_profile.name}</span></div>
+                        )}
+                        {extractedData.parsed_profile?.email && (
+                          <div>Email: <span className="text-white">{extractedData.parsed_profile.email}</span></div>
+                        )}
+                        {extractedData.parsed_profile?.experience_years && (
+                          <div>Experience: <span className="text-white">{extractedData.parsed_profile.experience_years} years</span></div>
+                        )}
+                        {extractedData.parsed_profile?.education && extractedData.parsed_profile.education.length > 0 && (
+                          <div>Education: <span className="text-white">{extractedData.parsed_profile.education[0]}</span></div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Current Skills Display */}
+                {skills.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-white/60 mb-2 flex items-center gap-2">
+                      <Zap size={14} className="text-blue-400" />Current Skills
+                    </label>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {skills.map((v: string) => (
+                        <span key={v} className="tag flex items-center gap-1.5">
+                          {v}
+                          <button onClick={() => setSkills(skills.filter((x: string) => x !== v))} className="hover:text-red-400">
+                            <X size={11} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Manual Skills Input */}
+                {!useResume && (
+                  <TagInput label="Current Skills" value={skills} onChange={setSkills} placeholder="e.g. Python, React" icon={Zap} color="text-blue-400" />
+                )}
+
                 <TagInput label="Strengths" value={strengths} onChange={setStrengths} placeholder="e.g. problem-solving" icon={Star} color="text-yellow-400" />
                 <TagInput label="Weaknesses" value={weaknesses} onChange={setWeaknesses} placeholder="e.g. SQL, public speaking" icon={AlertTriangle} color="text-orange-400" />
               </motion.div>

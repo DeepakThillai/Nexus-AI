@@ -7,4 +7,4 @@ python-dotenv==1.0.1
 pdfminer.six==20231228
 python-multipart==0.0.9
 Pillow==10.4.0
-pytesseract==0.3.13
+pytesseract==0.3.13PyPDF2==4.0.1

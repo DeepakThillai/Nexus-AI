@@ -1,0 +1,122 @@
+{
+  "timestamp": "2026-02-18T08:18:34.915775",
+  "status": "SUCCESS",
+  "user_id": "test-user-001",
+  "test_file": {
+    "name": "sample_resume.pdf",
+    "path": "E:\\Nexus-AI\\backend\\test_resume.pdf",
+    "size_bytes": 2901
+  },
+  "extraction": {
+    "method": "pdfminer.six with PyPDF2 fallback",
+    "duration_seconds": 4.446494,
+    "total_skills_extracted": 39,
+    "skills": [
+      "apache",
+      "aws",
+      "azure",
+      "c++",
+      "circleci",
+      "communication",
+      "django",
+      "docker",
+      "dynamodb",
+      "express.js",
+      "fastapi",
+      "firebase",
+      "flask",
+      "git",
+      "github",
+      "github actions",
+      "gitlab",
+      "google cloud platform",
+      "java",
+      "javascript",
+      "jenkins",
+      "jira",
+      "kubernetes",
+      "linux",
+      "mongodb",
+      "mysql",
+      "next.js",
+      "nginx",
+      "node.js",
+      "postgresql",
+      "project management",
+      "python",
+      "react.js",
+      "redis",
+      "sql",
+      "tailwind css",
+      "team leadership",
+      "typescript",
+      "vue.js"
+    ]
+  },
+  "categorization": {
+    "programming_languages": [
+      "Python",
+      "JavaScript",
+      "TypeScript",
+      "Java",
+      "C++",
+      "SQL"
+    ],
+    "frameworks": [
+      "Django",
+      "Flask",
+      "FastAPI",
+      "React.js",
+      "Next.js",
+      "Vue.js",
+      "Node.js",
+      "Express.js",
+      "Tailwind CSS"
+    ],
+    "databases": [
+      "MongoDB",
+      "PostgreSQL",
+      "MySQL",
+      "Redis",
+      "Firebase",
+      "DynamoDB"
+    ],
+    "cloud_platforms": [
+      "AWS",
+      "Google Cloud Platform",
+      "Azure"
+    ],
+    "tools": [
+      "Docker",
+      "Kubernetes",
+      "Git",
+      "GitHub",
+      "GitLab",
+      "Jira",
+      "Jenkins",
+      "CircleCI",
+      "Linux",
+      "Nginx",
+      "Apache",
+      "GitHub Actions"
+    ],
+    "soft_skills": [
+      "Team leadership",
+      "Project management",
+      "Communication"
+    ]
+  },
+  "storage": {
+    "database": "MongoDB",
+    "collection": "user_contexts",
+    "stored_successfully": true,
+    "verification_successful": true,
+    "stored_skills_count": 39
+  },
+  "workflow": {
+    "step_1_pdf_extraction": "\u2705 Complete",
+    "step_2_skill_categorization": "\u2705 Complete",
+    "step_3_mongodb_storage": "\u2705 Complete",
+    "step_4_verification": "\u2705 Complete"
+  }
+}
