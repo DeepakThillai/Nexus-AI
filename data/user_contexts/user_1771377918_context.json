@@ -1,0 +1,272 @@
+{
+  "user_id": "user_1771377918",
+  "created_at": "2026-02-18T06:55:18.044666",
+  "last_updated": "2026-02-18T06:55:42.995112",
+  "profile": {
+    "name": "John Doe",
+    "email": "john.doe@email.com",
+    "phone": "+1-555-0123",
+    "education": {
+      "degree": null,
+      "institution": null,
+      "graduation_year": null,
+      "cgpa": null
+    },
+    "experience_years": 8,
+    "skills": {
+      "technical": [
+        "Python",
+        "JavaScript",
+        "TypeScript",
+        "Java",
+        "SQL"
+      ],
+      "frameworks": [
+        "React",
+        "Redux",
+        "Vue.js",
+        "Django",
+        "Flask",
+        "Node.js",
+        "Express",
+        "FastAPI",
+        "Spring Boot",
+        "Tailwind CSS",
+        "Bootstrap"
+      ],
+      "databases": [
+        "PostgreSQL",
+        "MongoDB",
+        "MySQL",
+        "Redis",
+        "DynamoDB"
+      ],
+      "tools": [
+        "Docker",
+        "Kubernetes",
+        "Jenkins",
+        "GitHub Actions",
+        "Terraform",
+        "Git",
+        "REST APIs",
+        "GraphQL",
+        "Microservices",
+        "Agile/Scrum",
+        "JIRA",
+        "Apache Spark",
+        "Pandas",
+        "NumPy",
+        "D3.js",
+        "Matplotlib",
+        "AWS (EC2, S3, Lambda, RDS)"
+      ],
+      "soft_skills": [
+        "Team leadership",
+        "Mentoring",
+        "Communication",
+        "Collaboration"
+      ]
+    },
+    "projects": [],
+    "certifications": [],
+    "achievements": [],
+    "languages": [],
+    "linkedin": null,
+    "github": null,
+    "resume_uploaded": true,
+    "resume_uploaded_at": "2026-02-18T06:55:42.995065",
+    "resume_file_name": "sample_resume.pdf",
+    "resume_archived_path": "./data/resumes/user_1771377918_sample_resume.pdf"
+  },
+  "career_state": {
+    "current_target_role": null,
+    "original_target_role": null,
+    "role_tier": null,
+    "role_history": []
+  },
+  "readiness_assessment": {
+    "status": null,
+    "confidence_score": 0.0,
+    "skill_match_percentage": 0,
+    "matched_skills": [],
+    "missing_skills": [],
+    "surplus_skills": [],
+    "recommendation": null,
+    "reasoning": null,
+    "last_assessed_at": null,
+    "assessment_history": []
+  },
+  "active_roadmap": {
+    "roadmap_id": null,
+    "created_at": null,
+    "duration_months": 5,
+    "total_weeks": 20,
+    "current_phase": null,
+    "current_week": null,
+    "completion_percentage": 0,
+    "phases": [],
+    "status": "not_started"
+  },
+  "progress": {
+    "weeks_completed": 0,
+    "actions_completed": 0,
+    "actions_failed": 0,
+    "current_streak_weeks": 0,
+    "total_hours_invested": 0,
+    "last_activity_at": null,
+    "weekly_engagement": {}
+  },
+  "reroute_state": {
+    "is_active": false,
+    "reroute_count": 0,
+    "original_roadmap_id": null,
+    "reroute_reason": null,
+    "reroute_options": [],
+    "selected_option": null,
+    "rerouted_at": null,
+    "can_return_to_previous": true
+  },
+  "current_actions": {
+    "this_week": [],
+    "upcoming": [],
+    "blocked": []
+  },
+  "resume_analysis": {
+    "parsed_profile": {
+      "name": "John Doe",
+      "email": "john.doe@email.com",
+      "phone": "+1-555-0123",
+      "location": "San Francisco, CA",
+      "linkedin": "linkedin.com/in/johndoe",
+      "github": "github.com/johndoe",
+      "experience_years": 8,
+      "job_titles": [
+        "Senior Software Engineer",
+        "Software Engineer",
+        "Junior Developer"
+      ],
+      "education": [
+        {
+          "degree": "Bachelor of Science in Computer Science",
+          "institution": "University of California, Berkeley",
+          "location": "Berkeley, CA",
+          "graduation_date": "May 2015",
+          "gpa": "3.7/4.0"
+        }
+      ],
+      "certifications": [
+        "AWS Certified Solutions Architect - Associate (2021)",
+        "Certified Kubernetes Application Developer (CKAD) (2022)",
+        "MongoDB"
+      ]
+    },
+    "extracted_skills": {
+      "programming_languages": [
+        "Python",
+        "JavaScript",
+        "TypeScript",
+        "Java",
+        "SQL"
+      ],
+      "frameworks": [
+        "React",
+        "Redux",
+        "Vue.js",
+        "Django",
+        "Flask",
+        "Node.js",
+        "Express",
+        "FastAPI",
+        "Spring Boot",
+        "Tailwind CSS",
+        "Bootstrap"
+      ],
+      "databases": [
+        "PostgreSQL",
+        "MongoDB",
+        "MySQL",
+        "Redis",
+        "DynamoDB"
+      ],
+      "cloud_platforms": [
+        "AWS (EC2, S3, Lambda, RDS)"
+      ],
+      "tools": [
+        "Docker",
+        "Kubernetes",
+        "Jenkins",
+        "GitHub Actions",
+        "Terraform",
+        "Git",
+        "REST APIs",
+        "GraphQL",
+        "Microservices",
+        "Agile/Scrum",
+        "JIRA",
+        "Apache Spark",
+        "Pandas",
+        "NumPy",
+        "D3.js",
+        "Matplotlib"
+      ],
+      "soft_skills": [
+        "Team leadership",
+        "Mentoring",
+        "Communication",
+        "Collaboration"
+      ]
+    },
+    "normalized_skills": [
+      "agile/scrum",
+      "apache spark",
+      "aws (ec2, s3, lambda, rds)",
+      "bootstrap",
+      "collaboration",
+      "communication",
+      "d3.js",
+      "django",
+      "docker",
+      "dynamodb",
+      "express",
+      "fastapi",
+      "flask",
+      "git",
+      "github actions",
+      "graphql",
+      "java",
+      "javascript",
+      "jenkins",
+      "jira",
+      "kubernetes",
+      "matplotlib",
+      "mentoring",
+      "microservices",
+      "mongodb",
+      "mysql",
+      "node.js",
+      "numpy",
+      "pandas",
+      "postgresql",
+      "python",
+      "react",
+      "redis",
+      "redux",
+      "rest apis",
+      "spring boot",
+      "sql",
+      "tailwind css",
+      "team leadership",
+      "terraform",
+      "typescript",
+      "vue.js"
+    ],
+    "upload_time": "2026-02-18T06:55:42.995097",
+    "archived_path": "./data/resumes/user_1771377918_sample_resume.pdf",
+    "original_filename": "sample_resume.pdf"
+  },
+  "metadata": {
+    "total_sessions": 0,
+    "agent_interaction_count": {},
+    "system_events": []
+  }
+}

@@ -1,0 +1,272 @@
+{
+  "user_id": "user_1771378072",
+  "created_at": "2026-02-18T06:57:52.345099",
+  "last_updated": "2026-02-18T06:58:16.895901",
+  "profile": {
+    "name": "ABDULLAH",
+    "email": null,
+    "phone": "+91 8531914065",
+    "education": {
+      "degree": null,
+      "institution": null,
+      "graduation_year": null,
+      "cgpa": null
+    },
+    "experience_years": 0,
+    "skills": {
+      "technical": [
+        "Java",
+        "C",
+        "Python",
+        "JavaScript",
+        "Dart"
+      ],
+      "frameworks": [
+        "React.js",
+        "Node.js",
+        "Express.js",
+        "Flask",
+        "TensorFlow",
+        "Keras",
+        "Pandas",
+        "NumPy",
+        "Scikit-learn",
+        "Flutter",
+        "Supabase",
+        "Redux Toolkit"
+      ],
+      "databases": [
+        "MongoDB",
+        "MySQL",
+        "PostgreSQL",
+        "SQL"
+      ],
+      "tools": [
+        "Git",
+        "GitHub",
+        "Postman",
+        "VSCode",
+        "Linux (CLI)",
+        "JWT",
+        "REST APIs",
+        "AWS"
+      ],
+      "soft_skills": [
+        "Strong Problem-Solving Ability",
+        "Team Leadership",
+        "Collaboration",
+        "Adaptability & Quick Learning",
+        "Effective Communication",
+        "Self-Motivated & Goal-Oriented",
+        "Project Planning & Coordination"
+      ]
+    },
+    "projects": [],
+    "certifications": [],
+    "achievements": [],
+    "languages": [],
+    "linkedin": null,
+    "github": null,
+    "resume_uploaded": true,
+    "resume_uploaded_at": "2026-02-18T06:58:16.895862",
+    "resume_file_name": "Abdullah-Resume.pdf",
+    "resume_archived_path": "./data/resumes/user_1771378072_Abdullah-Resume.pdf"
+  },
+  "career_state": {
+    "current_target_role": null,
+    "original_target_role": null,
+    "role_tier": null,
+    "role_history": []
+  },
+  "readiness_assessment": {
+    "status": null,
+    "confidence_score": 0.0,
+    "skill_match_percentage": 0,
+    "matched_skills": [],
+    "missing_skills": [],
+    "surplus_skills": [],
+    "recommendation": null,
+    "reasoning": null,
+    "last_assessed_at": null,
+    "assessment_history": []
+  },
+  "active_roadmap": {
+    "roadmap_id": null,
+    "created_at": null,
+    "duration_months": 5,
+    "total_weeks": 20,
+    "current_phase": null,
+    "current_week": null,
+    "completion_percentage": 0,
+    "phases": [],
+    "status": "not_started"
+  },
+  "progress": {
+    "weeks_completed": 0,
+    "actions_completed": 0,
+    "actions_failed": 0,
+    "current_streak_weeks": 0,
+    "total_hours_invested": 0,
+    "last_activity_at": null,
+    "weekly_engagement": {}
+  },
+  "reroute_state": {
+    "is_active": false,
+    "reroute_count": 0,
+    "original_roadmap_id": null,
+    "reroute_reason": null,
+    "reroute_options": [],
+    "selected_option": null,
+    "rerouted_at": null,
+    "can_return_to_previous": true
+  },
+  "current_actions": {
+    "this_week": [],
+    "upcoming": [],
+    "blocked": []
+  },
+  "resume_analysis": {
+    "parsed_profile": {
+      "name": "ABDULLAH",
+      "email": null,
+      "phone": "+91 8531914065",
+      "location": null,
+      "linkedin": null,
+      "github": null,
+      "experience_years": 0,
+      "job_titles": [
+        "Backend Developer",
+        "Deep Learning Engineer",
+        "Team Leader | Backend, AI & Database",
+        "Full Stack Developer"
+      ],
+      "education": [
+        {
+          "degree": "B.Tech Computer Science and Engineering (Honors in Artificial Intelligence)",
+          "institution": "Sri Manakula Vinayagar Engineering College, Puducherry",
+          "period": "2023 \u2013 2027",
+          "details": "CGPA: 8.78 (up to 5th Semester)"
+        },
+        {
+          "degree": "Higher Secondary",
+          "institution": "New Modern Vidhya Mandir Hr Sec School, Puducherry",
+          "period": "2022 - 2023",
+          "details": "83.1%"
+        },
+        {
+          "degree": "Secondary Schooling",
+          "institution": "New Modern Vidhya Mandir Hr Sec School, Puducherry",
+          "period": "2020 - 2021",
+          "details": "Pass"
+        }
+      ],
+      "certifications": [
+        "1M1B AI + Sustainability Internship (IBM SkillsBuild)",
+        "NPTEL Star \u2013 DSA in Java (Top 2% Nationwide)",
+        "NPTEL: Programming in Java",
+        "NPTEL: Data Structures & Algorithms in Java",
+        "NPTEL: Introduction to Large Language Models (LLMs)",
+        "AWS Academy Cloud Foundations \u2013 Amazon Web Services",
+        "Programming in Java \u2013 NPTEL (IIT Certified)",
+        "Google AI/ML Virtual Internship \u2013 EduSkill & Google",
+        "CCNA \u2013 Cisco Certified Network Associate"
+      ]
+    },
+    "extracted_skills": {
+      "programming_languages": [
+        "Java",
+        "C",
+        "Python",
+        "JavaScript",
+        "Dart"
+      ],
+      "frameworks": [
+        "React.js",
+        "Node.js",
+        "Express.js",
+        "Flask",
+        "TensorFlow",
+        "Keras",
+        "Pandas",
+        "NumPy",
+        "Scikit-learn",
+        "Flutter",
+        "Supabase",
+        "Redux Toolkit"
+      ],
+      "databases": [
+        "MongoDB",
+        "MySQL",
+        "PostgreSQL",
+        "SQL"
+      ],
+      "cloud_platforms": [
+        "AWS"
+      ],
+      "tools": [
+        "Git",
+        "GitHub",
+        "Postman",
+        "VSCode",
+        "Linux (CLI)",
+        "JWT",
+        "REST APIs"
+      ],
+      "soft_skills": [
+        "Strong Problem-Solving Ability",
+        "Team Leadership",
+        "Collaboration",
+        "Adaptability & Quick Learning",
+        "Effective Communication",
+        "Self-Motivated & Goal-Oriented",
+        "Project Planning & Coordination"
+      ]
+    },
+    "normalized_skills": [
+      "adaptability & quick learning",
+      "aws",
+      "c",
+      "collaboration",
+      "dart",
+      "effective communication",
+      "express.js",
+      "flask",
+      "flutter",
+      "git",
+      "github",
+      "java",
+      "javascript",
+      "jwt",
+      "keras",
+      "linux (cli)",
+      "mongodb",
+      "mysql",
+      "node.js",
+      "numpy",
+      "pandas",
+      "postgresql",
+      "postman",
+      "project planning & coordination",
+      "python",
+      "react.js",
+      "redux toolkit",
+      "rest apis",
+      "scikit-learn",
+      "self-motivated & goal-oriented",
+      "sql",
+      "strong problem-solving ability",
+      "supabase",
+      "team leadership",
+      "tensorflow",
+      "vscode"
+    ],
+    "upload_time": "2026-02-18T06:58:16.895883",
+    "archived_path": "./data/resumes/user_1771378072_Abdullah-Resume.pdf",
+    "original_filename": "Abdullah-Resume.pdf"
+  },
+  "metadata": {
+    "total_sessions": 0,
+    "agent_interaction_count": {},
+    "system_events": []
+  }
+}

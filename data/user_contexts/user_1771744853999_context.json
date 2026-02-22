@@ -1,0 +1,293 @@
+{
+  "user_id": "user_1771744853999",
+  "created_at": "2026-02-22T12:51:14.763513",
+  "last_updated": "2026-02-22T13:00:28.633363",
+  "profile": {
+    "name": "Abdullah N",
+    "email": "abdullahoffl200S@gmail.com",
+    "phone": "+91 85319 14065",
+    "education": {
+      "degree": null,
+      "institution": null,
+      "graduation_year": null,
+      "cgpa": null
+    },
+    "experience_years": 0,
+    "skills": {
+      "technical": [
+        "Java",
+        "C"
+      ],
+      "frameworks": [
+        "React.js",
+        "Node.js",
+        "Express.js",
+        "Flask"
+      ],
+      "databases": [
+        "MongoDB",
+        "MySQL"
+      ],
+      "tools": [
+        "JWT",
+        "Redux Toolkit",
+        "REST APIs",
+        "CI/CD",
+        "GitHub",
+        "OTP",
+        "Deep Learning",
+        "Neural Networks",
+        "Batch Normalization",
+        "Dropout",
+        "AWS",
+        "Render"
+      ],
+      "soft_skills": [
+        "Problem-solving",
+        "Scalable application development",
+        "Leadership",
+        "Collaboration",
+        "Teamwork",
+        "Passion for backend development",
+        "Interest in AI-driven technologies",
+        "Excited to solve real\u2011world problems"
+      ]
+    },
+    "projects": [
+      {
+        "name": "Intel AI MediLocker",
+        "description": "Ideated and led development of an AI\u2011powered medical platform enabling doctors to securely access patients\u2019 medical records via OTP and analyze history before prescribing, preventing harmful drug interactions or allergic medicines. Built intelligent features like side\u2011effect prediction, symptom\u2011to\u2011specialist mapping, and auto\u2011generated digital prescriptions with dosage scheduling.",
+        "technologies": [
+          "Node.js",
+          "Express.js",
+          "MongoDB",
+          "AI",
+          "OTP",
+          "Backend",
+          "Database"
+        ]
+      },
+      {
+        "name": "MERN RBAC - Notes-Management Dashboard",
+        "description": "Built and deployed a secure full\u2011stack dashboard with Admin, Manager, and Employee roles. Implemented JWT\u2011based authentication, protected routes, and session persistence. Designed modular frontend with React and Redux Toolkit, and REST APIs with Express & MongoDB. Handled all backend logic, middleware, and database integration. Deployed live on Render with GitHub integration for CI/CD.",
+        "technologies": [
+          "React",
+          "Redux Toolkit",
+          "Node.js",
+          "Express",
+          "MongoDB",
+          "JWT",
+          "REST APIs",
+          "Render",
+          "GitHub",
+          "CI/CD"
+        ]
+      },
+      {
+        "name": "Heart Disease Risk Prediction",
+        "description": "Built a deep\u2011learning based cardiovascular disease risk prediction system using 13 clinical health features from patient records. Designed and trained a 5\u2011layer neural network (128\u201164\u201132\u201116\u20111) with batch normalization and dropout to improve generalization and prevent overfitting. Trained and validated on 297 patient records, enabling high\u2011confidence risk classification for medical decision support.",
+        "technologies": [
+          "Deep Learning",
+          "Neural Networks",
+          "Batch Normalization",
+          "Dropout",
+          "Python"
+        ]
+      }
+    ],
+    "certifications": [
+      "NPTEL Star | DSA in Java (Top 2% Nationwide)",
+      "AWS Academy Cloud Foundations | Amazon Web Services",
+      "Programming in Java | NPTEL (IIT Certified)",
+      "Google AI/ML Virtual Internship | EduSkill & Google",
+      "CCNA (Cisco Certified Network Associate) | Cisco"
+    ],
+    "achievements": [
+      "Unisys Innovation Program \u2014 Pre\u2011Finalist (01/2025 - 05/2025): Selected among the top 50 projects nationally out of 1000+ entries for the AI\u2011based healthcare solution \u201cIntel AI MediLocker\u201d.",
+      "1M1B AI + Sustainability Internship (IBM SkillsBuild) (02/2025): Successfully completed a 7\u2011day program focused on AI\u2011driven solutions for global sustainability."
+    ],
+    "languages": [
+      "Hindi \u2013 Native or Bilingual Proficiency",
+      "English \u2013 Full Professional Proficiency",
+      "Tamil \u2013 Native or Bilingual Proficiency"
+    ],
+    "linkedin": "linkedin.com/in/abdullahxdev",
+    "github": "github.com/Abdullah-218",
+    "resume_uploaded": true,
+    "resume_uploaded_at": "2026-02-22T13:00:28.633305",
+    "resume_file_name": "Resume.png"
+  },
+  "career_state": {
+    "current_target_role": null,
+    "original_target_role": null,
+    "role_tier": null,
+    "role_history": []
+  },
+  "readiness_assessment": {
+    "status": null,
+    "confidence_score": 0.0,
+    "skill_match_percentage": 0,
+    "matched_skills": [],
+    "missing_skills": [],
+    "surplus_skills": [],
+    "recommendation": null,
+    "reasoning": null,
+    "last_assessed_at": null,
+    "assessment_history": []
+  },
+  "active_roadmap": {
+    "roadmap_id": null,
+    "created_at": null,
+    "duration_months": 5,
+    "total_weeks": 20,
+    "current_phase": null,
+    "current_week": null,
+    "completion_percentage": 0,
+    "phases": [],
+    "status": "not_started"
+  },
+  "progress": {
+    "weeks_completed": 0,
+    "actions_completed": 0,
+    "actions_failed": 0,
+    "current_streak_weeks": 0,
+    "total_hours_invested": 0,
+    "last_activity_at": null,
+    "weekly_engagement": {}
+  },
+  "reroute_state": {
+    "is_active": false,
+    "reroute_count": 0,
+    "original_roadmap_id": null,
+    "reroute_reason": null,
+    "reroute_options": [],
+    "selected_option": null,
+    "rerouted_at": null,
+    "can_return_to_previous": true
+  },
+  "current_actions": {
+    "this_week": [],
+    "upcoming": [],
+    "blocked": []
+  },
+  "resume_analysis": {
+    "parsed_profile": {
+      "name": "Abdullah N",
+      "email": "abdullahoffl200S@gmail.com",
+      "phone": "+91 85319 14065",
+      "location": "Pondicherry, India",
+      "linkedin": "linkedin.com/in/abdullahxdev",
+      "github": "github.com/Abdullah-218",
+      "experience_years": 0,
+      "job_titles": [
+        "Team Lead"
+      ],
+      "education": [
+        {
+          "degree": "B.Tech Computer Science and Engineering",
+          "institution": "Sri Manakula Vinayagar Engineering College, Puducherry",
+          "years": "2023-2027",
+          "grade": "CGPA: 8.8 (Till 6th Sem)"
+        },
+        {
+          "degree": "Higher Secondary",
+          "institution": "New Modern Vidya Mandir HR Sec School, Puducherry",
+          "years": "2022-2023",
+          "grade": "83.1%"
+        },
+        {
+          "degree": "Secondary Schooling",
+          "institution": "New Modern Vidya Mandir HR Sec School, Puducherry",
+          "years": "2020-2021",
+          "grade": "PASS"
+        }
+      ],
+      "certifications": [
+        "NPTEL Star | DSA in Java (Top 2% Nationwide)",
+        "AWS Academy Cloud Foundations | Amazon Web Services",
+        "Programming in Java | NPTEL (IIT Certified)",
+        "Google AI/ML Virtual Internship | EduSkill & Google",
+        "CCNA (Cisco Certified Network Associate) | Cisco"
+      ]
+    },
+    "extracted_skills": {
+      "programming_languages": [
+        "Java",
+        "C"
+      ],
+      "frameworks": [
+        "React.js",
+        "Node.js",
+        "Express.js",
+        "Flask"
+      ],
+      "databases": [
+        "MongoDB",
+        "MySQL"
+      ],
+      "cloud_platforms": [
+        "AWS",
+        "Render"
+      ],
+      "tools": [
+        "JWT",
+        "Redux Toolkit",
+        "REST APIs",
+        "CI/CD",
+        "GitHub",
+        "OTP",
+        "Deep Learning",
+        "Neural Networks",
+        "Batch Normalization",
+        "Dropout"
+      ],
+      "soft_skills": [
+        "Problem-solving",
+        "Scalable application development",
+        "Leadership",
+        "Collaboration",
+        "Teamwork",
+        "Passion for backend development",
+        "Interest in AI-driven technologies",
+        "Excited to solve real\u2011world problems"
+      ]
+    },
+    "normalized_skills": [
+      "aws",
+      "batch normalization",
+      "c",
+      "ci/cd",
+      "collaboration",
+      "deep learning",
+      "dropout",
+      "excited to solve real\u2011world problems",
+      "express.js",
+      "flask",
+      "github",
+      "interest in ai-driven technologies",
+      "java",
+      "jwt",
+      "leadership",
+      "mongodb",
+      "mysql",
+      "neural networks",
+      "node.js",
+      "otp",
+      "passion for backend development",
+      "problem-solving",
+      "react.js",
+      "redux toolkit",
+      "render",
+      "rest apis",
+      "scalable application development",
+      "teamwork"
+    ],
+    "extraction_method": "ocr",
+    "processing_time_seconds": 5.97
+  },
+  "metadata": {
+    "total_sessions": 0,
+    "agent_interaction_count": {},
+    "system_events": []
+  }
+}

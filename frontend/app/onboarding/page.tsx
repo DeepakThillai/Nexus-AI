@@ -17,7 +17,7 @@ function TagInput({ label, value, onChange, placeholder, icon: Icon, color }: an
   };
   return (
     <div>
-      <label className="block text-sm font-medium text-white/60 mb-2 flex items-center gap-2">
+      <label className="text-sm font-medium text-white/60 mb-2 flex items-center gap-2">
         <Icon size={14} className={color} />{label}
       </label>
       <div className="flex gap-2 mb-2">
@@ -125,7 +125,7 @@ export default function OnboardingPage() {
         }
 
         // Add extracted skills to existing skills (avoid duplicates)
-        const newSkills = [...new Set([...skills, ...extractedSkills])];
+        const newSkills = Array.from(new Set([...skills, ...extractedSkills]));
         setSkills(newSkills);
         setError(""); // Clear any error
       } else {
@@ -311,7 +311,12 @@ export default function OnboardingPage() {
                           <div>Experience: <span className="text-white">{extractedData.parsed_profile.experience_years} years</span></div>
                         )}
                         {extractedData.parsed_profile?.education && extractedData.parsed_profile.education.length > 0 && (
-                          <div>Education: <span className="text-white">{extractedData.parsed_profile.education[0]}</span></div>
+                          <div>Education: <span className="text-white">
+                            {typeof extractedData.parsed_profile.education[0] === 'string'
+                              ? extractedData.parsed_profile.education[0]
+                              : `${extractedData.parsed_profile.education[0].degree || ''} from ${extractedData.parsed_profile.education[0].institution || ''}`
+                            }
+                          </span></div>
                         )}
                       </div>
                     )}
@@ -321,7 +326,7 @@ export default function OnboardingPage() {
                 {/* Current Skills Display */}
                 {skills.length > 0 && (
                   <div>
-                    <label className="block text-sm font-medium text-white/60 mb-2 flex items-center gap-2">
+                    <label className="text-sm font-medium text-white/60 mb-2 flex items-center gap-2">
                       <Zap size={14} className="text-blue-400" />Current Skills
                     </label>
                     <div className="flex flex-wrap gap-2 mb-3">
@@ -352,7 +357,7 @@ export default function OnboardingPage() {
                 <h2 className="text-2xl font-black mb-1">Your Target Role</h2>
                 <p className="text-white/40 text-sm mb-6">What career position are you aiming for?</p>
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-2 flex items-center gap-2">
+                  <label className="text-sm font-medium text-white/60 mb-2 flex items-center gap-2">
                     <Briefcase size={14} className="text-violet-400" /> Target Role *
                   </label>
                   <input value={targetRole} onChange={(e) => setTargetRole(e.target.value)}

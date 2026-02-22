@@ -100,6 +100,7 @@ def call_llm(system_prompt: str, user_prompt: str, max_tokens: int = 2048) -> st
     Every agent must use this — no direct Groq calls elsewhere.
 
     Returns the raw string content from the model.
+    Raises RuntimeError with clear error messages.
     """
     client = get_client()
     try:
@@ -112,11 +113,22 @@ def call_llm(system_prompt: str, user_prompt: str, max_tokens: int = 2048) -> st
             max_completion_tokens=max_tokens,
             stream=False,
         )
+        return response.choices[0].message.content.strip()
+        
     except AuthenticationError as exc:
-        raise RuntimeError(
-            f"Groq authentication failed. Check {API_ENV_VAR} and use a valid key."
-        ) from exc
-    return response.choices[0].message.content.strip()
+        error_msg = (
+            f"❌ Groq API Authentication Failed\n"
+            f"   Check your {API_ENV_VAR} in .env file\n"
+            f"   Error: {str(exc)}"
+        )
+        raise RuntimeError(error_msg) from exc
+        
+    except Exception as exc:
+        error_msg = (
+            f"❌ Groq API Error\n"
+            f"   {type(exc).__name__}: {str(exc)}"
+        )
+        raise RuntimeError(error_msg) from exc
 
 
 def extract_json(raw: str) -> dict:
@@ -259,6 +271,7 @@ class ResumeAnalyzerAgent:
     def parse_resume(self, resume_text: str) -> Dict[str, Any]:
         """Parse resume text using LLM to extract structured information"""
         if len(resume_text) < 50:
+            print(f"  [Resume] Warning: Extracted text too short ({len(resume_text)} chars). Resume may not have readable content.")
             return {
                 "parsed_profile": {},
                 "extracted_skills": {
@@ -275,8 +288,8 @@ class ResumeAnalyzerAgent:
             }
 
         system = (
-            "You are a professional resume parser. Extract ALL relevant information. "
-            "Return ONLY valid JSON matching the provided schema. No explanations."
+            "You are a professional resume parser. Extract ALL relevant information from the resume. "
+            "Be thorough - extract every skill mentioned. Return ONLY valid JSON matching the provided schema. No explanations."
         )
 
         schema = {
@@ -306,17 +319,48 @@ class ResumeAnalyzerAgent:
         }
 
         user = (
-            f"Extract information from this resume:\n\n{resume_text[:3000]}\n\n"
-            f"Return this exact JSON schema:\n{json.dumps(schema, indent=2)}"
+            f"Extract ALL information from this resume including every single skill mentioned:\n\n{resume_text[:4000]}\n\n"
+            f"Return this exact JSON schema filled with extracted data:\n{json.dumps(schema, indent=2)}"
         )
 
         try:
+            print(f"  [Resume] Calling Groq LLM for resume parsing...")
             response = call_llm(system, user, max_tokens=2500)
+            print(f"  [Resume] LLM response received ({len(response)} chars)")
+            
             response = response.replace("```json", "").replace("```", "").strip()
-            parsed = json.loads(response)
+            parsed = extract_json(response)
+            print(f"  [Resume] JSON parsing successful")
+            print(f"  [Resume] Found {len(parsed.get('extracted_skills', {}).get('programming_languages', []))} programming languages")
             return parsed
+            
+        except RuntimeError as auth_err:
+            # Re-raise authentication errors - these are critical
+            print(f"  ✗ [Resume] AUTHENTICATION ERROR: {str(auth_err)}")
+            raise auth_err
+            
+        except json.JSONDecodeError as json_err:
+            print(f"  ✗ [Resume] JSON parsing failed: {str(json_err)[:100]}")
+            print(f"  [Resume] Raw response: {response[:200]}...")
+            return {
+                "parsed_profile": {},
+                "extracted_skills": {
+                    "programming_languages": [],
+                    "frameworks": [],
+                    "databases": [],
+                    "cloud_platforms": [],
+                    "tools": [],
+                    "soft_skills": []
+                },
+                "projects": [],
+                "achievements": [],
+                "languages": []
+            }
+            
         except Exception as e:
-            print(f"  [Resume] JSON parse error: {str(e)[:50]}")
+            print(f"  ✗ [Resume] Unexpected error: {str(e)[:100]}")
+            import traceback
+            traceback.print_exc()
             return {
                 "parsed_profile": {},
                 "extracted_skills": {
@@ -482,8 +526,19 @@ class ResumeAnalyzerAgent:
                 "normalized_skills": normalized_skills
             }
             
+        except RuntimeError as auth_err:
+            # Authentication errors should be raised immediately - these are critical
+            if "authentication" in str(auth_err).lower():
+                print(f"  ✗ CRITICAL: {str(auth_err)}")
+                raise auth_err
+            else:
+                print(f"  ✗ Resume analysis failed: {str(auth_err)[:100]}")
+                return {"status": "error", "message": str(auth_err)}
+                
         except Exception as e:
             print(f"  ✗ Resume analysis failed: {str(e)[:100]}")
+            import traceback
+            traceback.print_exc()
             return {"status": "error", "message": str(e)}
 
 

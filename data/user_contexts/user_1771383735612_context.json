@@ -1,0 +1,105 @@
+{
+  "user_id": "user_1771383735612",
+  "created_at": "2026-02-18T08:32:52.522734",
+  "last_updated": "2026-02-18T08:32:52.524193",
+  "profile": {
+    "name": null,
+    "email": null,
+    "phone": null,
+    "education": {
+      "degree": null,
+      "institution": null,
+      "graduation_year": null,
+      "cgpa": null
+    },
+    "experience_years": 0,
+    "skills": {
+      "technical": [],
+      "frameworks": [],
+      "databases": [],
+      "tools": [],
+      "soft_skills": []
+    },
+    "projects": [],
+    "certifications": [],
+    "achievements": [],
+    "languages": [],
+    "linkedin": null,
+    "github": null,
+    "resume_uploaded": true,
+    "resume_uploaded_at": "2026-02-18T08:32:52.524152",
+    "resume_file_name": "Abdullah-Resume.pdf"
+  },
+  "career_state": {
+    "current_target_role": null,
+    "original_target_role": null,
+    "role_tier": null,
+    "role_history": []
+  },
+  "readiness_assessment": {
+    "status": null,
+    "confidence_score": 0.0,
+    "skill_match_percentage": 0,
+    "matched_skills": [],
+    "missing_skills": [],
+    "surplus_skills": [],
+    "recommendation": null,
+    "reasoning": null,
+    "last_assessed_at": null,
+    "assessment_history": []
+  },
+  "active_roadmap": {
+    "roadmap_id": null,
+    "created_at": null,
+    "duration_months": 5,
+    "total_weeks": 20,
+    "current_phase": null,
+    "current_week": null,
+    "completion_percentage": 0,
+    "phases": [],
+    "status": "not_started"
+  },
+  "progress": {
+    "weeks_completed": 0,
+    "actions_completed": 0,
+    "actions_failed": 0,
+    "current_streak_weeks": 0,
+    "total_hours_invested": 0,
+    "last_activity_at": null,
+    "weekly_engagement": {}
+  },
+  "reroute_state": {
+    "is_active": false,
+    "reroute_count": 0,
+    "original_roadmap_id": null,
+    "reroute_reason": null,
+    "reroute_options": [],
+    "selected_option": null,
+    "rerouted_at": null,
+    "can_return_to_previous": true
+  },
+  "current_actions": {
+    "this_week": [],
+    "upcoming": [],
+    "blocked": []
+  },
+  "resume_analysis": {
+    "parsed_profile": {},
+    "extracted_skills": {
+      "programming_languages": [],
+      "frameworks": [],
+      "databases": [],
+      "cloud_platforms": [],
+      "tools": [],
+      "soft_skills": []
+    },
+    "normalized_skills": [],
+    "extraction_method": "pdf",
+    "processing_time_seconds": 0.38
+  },
+  "metadata": {
+    "total_sessions": 0,
+    "agent_interaction_count": {},
+    "system_events": []
+  }
+}
