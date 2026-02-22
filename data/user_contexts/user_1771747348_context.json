@@ -1,0 +1,215 @@
+{
+  "user_id": "user_1771747348",
+  "created_at": "2026-02-22T13:32:28.106849",
+  "last_updated": "2026-02-22T13:32:43.908716",
+  "profile": {
+    "name": "Abdullah N",
+    "email": "abdullahoffl200S@gmail.com",
+    "phone": "+91 85319 14065",
+    "education": {
+      "degree": null,
+      "institution": null,
+      "graduation_year": null,
+      "cgpa": null
+    },
+    "experience_years": 0,
+    "skills": {
+      "technical": [
+        "Java",
+        "C"
+      ],
+      "frameworks": [
+        "React.js",
+        "Node.js",
+        "Express.js",
+        "Flask",
+        "Redux Toolkit"
+      ],
+      "databases": [
+        "MongoDB",
+        "MySQL"
+      ],
+      "tools": [
+        "GitHub",
+        "Render",
+        "CI/CD",
+        "JWT",
+        "OTP",
+        "AWS"
+      ],
+      "soft_skills": [
+        "Leadership",
+        "Collaboration",
+        "Problem\u2011solving",
+        "Teamwork",
+        "Scalable application development",
+        "Interest in AI\u2011driven technologies"
+      ]
+    },
+    "projects": [],
+    "certifications": [],
+    "achievements": [],
+    "languages": [],
+    "linkedin": null,
+    "github": null,
+    "resume_uploaded": true,
+    "resume_uploaded_at": "2026-02-22T13:32:43.908684",
+    "resume_file_name": "Resume.png",
+    "resume_archived_path": "./data/resumes/user_1771747348_Resume.png"
+  },
+  "career_state": {
+    "current_target_role": null,
+    "original_target_role": null,
+    "role_tier": null,
+    "role_history": []
+  },
+  "readiness_assessment": {
+    "status": null,
+    "confidence_score": 0.0,
+    "skill_match_percentage": 0,
+    "matched_skills": [],
+    "missing_skills": [],
+    "surplus_skills": [],
+    "recommendation": null,
+    "reasoning": null,
+    "last_assessed_at": null,
+    "assessment_history": []
+  },
+  "active_roadmap": {
+    "roadmap_id": null,
+    "created_at": null,
+    "duration_months": 5,
+    "total_weeks": 20,
+    "current_phase": null,
+    "current_week": null,
+    "completion_percentage": 0,
+    "phases": [],
+    "status": "not_started"
+  },
+  "progress": {
+    "weeks_completed": 0,
+    "actions_completed": 0,
+    "actions_failed": 0,
+    "current_streak_weeks": 0,
+    "total_hours_invested": 0,
+    "last_activity_at": null,
+    "weekly_engagement": {}
+  },
+  "reroute_state": {
+    "is_active": false,
+    "reroute_count": 0,
+    "original_roadmap_id": null,
+    "reroute_reason": null,
+    "reroute_options": [],
+    "selected_option": null,
+    "rerouted_at": null,
+    "can_return_to_previous": true
+  },
+  "current_actions": {
+    "this_week": [],
+    "upcoming": [],
+    "blocked": []
+  },
+  "resume_analysis": {
+    "parsed_profile": {
+      "name": "Abdullah N",
+      "email": "abdullahoffl200S@gmail.com",
+      "phone": "+91 85319 14065",
+      "location": "Pondicherry, India",
+      "linkedin": "linkedin.com/in/abdullahxdev",
+      "github": "github.com/Abdullah-218",
+      "experience_years": 0,
+      "job_titles": [],
+      "education": [
+        {
+          "degree": "B.Tech Computer Science and Engineering",
+          "institution": "Sri Manakula Vinayagar Engineering College, Puducherry",
+          "start_year": 2023,
+          "end_year": 2027,
+          "details": "CGPA: 8.8 (Till Sth Sem)"
+        },
+        {
+          "degree": "Higher Secondary",
+          "institution": "New Modern Vidhya Mandir HR Sec School, Puducherry",
+          "start_year": 2022,
+          "end_year": 2023,
+          "details": "83.1%"
+        },
+        {
+          "degree": "Secondary Schooling",
+          "institution": "New Modern Vidhya Mandir HR Sec School, Puducherry",
+          "start_year": 2020,
+          "end_year": 2021,
+          "details": "PASS"
+        }
+      ],
+      "certifications": [
+        "NPTEL Star | DSA in Java (Top 2% Nationwide)",
+        "AWS Academy Cloud Foundations | Amazon Web Services",
+        "Programming in Java | NPTEL (IIT Certified)",
+        "Google AI/ML Virtual Internship | EduSkill & Google",
+        "CCNA (Cisco Certified Network Associate) | Cisco"
+      ]
+    },
+    "extracted_skills": {
+      "programming_languages": [
+        "Java",
+        "C"
+      ],
+      "frameworks": [
+        "React.js",
+        "Node.js",
+        "Express.js",
+        "Flask",
+        "Redux Toolkit"
+      ],
+      "databases": [
+        "MongoDB",
+        "MySQL"
+      ],
+      "cloud_platforms": [
+        "AWS"
+      ],
+      "tools": [
+        "GitHub",
+        "Render",
+        "CI/CD",
+        "JWT",
+        "OTP"
+      ],
+      "soft_skills": [
+        "Leadership",
+        "Collaboration",
+        "Problem\u2011solving",
+        "Teamwork",
+        "Scalable application development",
+        "Interest in AI\u2011driven technologies"
+      ]
+    },
+    "normalized_skills": [
+      "aws",
+      "c",
+      "ci/cd",
+      "express.js",
+      "flask",
+      "github",
+      "java",
+      "jwt",
+      "mongodb",
+      "mysql",
+      "node.js",
+      "otp",
+      "react.js",
+      "redux toolkit",
+      "render"
+    ],
+    "upload_time": "2026-02-22T13:32:43.908705",
+    "archived_path": "./data/resumes/user_1771747348_Resume.png",
+    "original_filename": "Resume.png"
+  },
+  "metadata": {
+    "total_sessions": 0,
+    "agent_interaction_count": {},
+    "system_events": []
+  }
+}

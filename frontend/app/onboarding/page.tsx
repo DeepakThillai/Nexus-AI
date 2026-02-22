@@ -105,9 +105,12 @@ export default function OnboardingPage() {
       console.log("✅ Resume analysis result:", data);
 
       if (data.status === "success") {
-        // Extract normalized skills from response
+        // Extract technical and soft skills from response
         const extractedSkills = data.normalized_skills || [];
-        console.log(`✓ Extracted ${extractedSkills.length} skills from resume`);
+        const softSkills = data.soft_skills || [];
+        
+        console.log(`✓ Extracted ${extractedSkills.length} technical skills from resume`);
+        console.log(`✓ Identified ${softSkills.length} soft skills from resume`);
 
         // Store extracted data for later use
         setExtractedData(data);
@@ -124,7 +127,8 @@ export default function OnboardingPage() {
           setExpYears(parsedProfile.experience_years);
         }
 
-        // Add extracted skills to existing skills (avoid duplicates)
+        // Add extracted TECHNICAL skills to existing skills (avoid duplicates)
+        // Soft skills are kept separate for reference
         const newSkills = Array.from(new Set([...skills, ...extractedSkills]));
         setSkills(newSkills);
         setError(""); // Clear any error
@@ -299,24 +303,65 @@ export default function OnboardingPage() {
                     )}
                     
                     {extractedData && (
-                      <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg text-sm text-white/70 space-y-1">
-                        <div className="font-semibold text-blue-400 mb-2">📋 Extracted Profile Data</div>
-                        {extractedData.parsed_profile?.name && (
-                          <div>Name: <span className="text-white">{extractedData.parsed_profile.name}</span></div>
+                      <div className="mt-4 space-y-3">
+                        {/* Profile Data */}
+                        <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg text-sm text-white/70 space-y-1">
+                          <div className="font-semibold text-blue-400 mb-2">📋 Extracted Profile Data</div>
+                          {extractedData.parsed_profile?.name && (
+                            <div>Name: <span className="text-white">{extractedData.parsed_profile.name}</span></div>
+                          )}
+                          {extractedData.parsed_profile?.email && (
+                            <div>Email: <span className="text-white">{extractedData.parsed_profile.email}</span></div>
+                          )}
+                          {extractedData.parsed_profile?.experience_years && (
+                            <div>Experience: <span className="text-white">{extractedData.parsed_profile.experience_years} years</span></div>
+                          )}
+                          {extractedData.parsed_profile?.education && extractedData.parsed_profile.education.length > 0 && (
+                            <div>Education: <span className="text-white">
+                              {typeof extractedData.parsed_profile.education[0] === 'string'
+                                ? extractedData.parsed_profile.education[0]
+                                : `${extractedData.parsed_profile.education[0].degree || ''} from ${extractedData.parsed_profile.education[0].institution || ''}`
+                              }
+                            </span></div>
+                          )}
+                        </div>
+                        
+                        {/* Technical Skills Summary */}
+                        {extractedData.normalized_skills && extractedData.normalized_skills.length > 0 && (
+                          <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-sm text-white/70">
+                            <div className="font-semibold text-green-400 mb-2">⚙️ Technical Skills ({extractedData.normalized_skills.length})</div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {extractedData.normalized_skills.slice(0, 8).map((skill: string) => (
+                                <span key={skill} className="px-2 py-0.5 bg-green-500/20 text-green-300 rounded text-xs">
+                                  {skill.charAt(0).toUpperCase() + skill.slice(1)}
+                                </span>
+                              ))}
+                              {extractedData.normalized_skills.length > 8 && (
+                                <span className="px-2 py-0.5 bg-green-500/10 text-green-300 rounded text-xs">
+                                  +{extractedData.normalized_skills.length - 8} more
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         )}
-                        {extractedData.parsed_profile?.email && (
-                          <div>Email: <span className="text-white">{extractedData.parsed_profile.email}</span></div>
-                        )}
-                        {extractedData.parsed_profile?.experience_years && (
-                          <div>Experience: <span className="text-white">{extractedData.parsed_profile.experience_years} years</span></div>
-                        )}
-                        {extractedData.parsed_profile?.education && extractedData.parsed_profile.education.length > 0 && (
-                          <div>Education: <span className="text-white">
-                            {typeof extractedData.parsed_profile.education[0] === 'string'
-                              ? extractedData.parsed_profile.education[0]
-                              : `${extractedData.parsed_profile.education[0].degree || ''} from ${extractedData.parsed_profile.education[0].institution || ''}`
-                            }
-                          </span></div>
+                        
+                        {/* Soft Skills Summary */}
+                        {extractedData.soft_skills && extractedData.soft_skills.length > 0 && (
+                          <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg text-sm text-white/70">
+                            <div className="font-semibold text-purple-400 mb-2">💡 Soft Skills ({extractedData.soft_skills.length})</div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {extractedData.soft_skills.slice(0, 6).map((skill: string) => (
+                                <span key={skill} className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded text-xs">
+                                  {skill.charAt(0).toUpperCase() + skill.slice(1)}
+                                </span>
+                              ))}
+                              {extractedData.soft_skills.length > 6 && (
+                                <span className="px-2 py-0.5 bg-purple-500/10 text-purple-300 rounded text-xs">
+                                  +{extractedData.soft_skills.length - 6} more
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         )}
                       </div>
                     )}

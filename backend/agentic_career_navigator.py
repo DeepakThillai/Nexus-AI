@@ -288,8 +288,16 @@ class ResumeAnalyzerAgent:
             }
 
         system = (
-            "You are a professional resume parser. Extract ALL relevant information from the resume. "
-            "Be thorough - extract every skill mentioned. Return ONLY valid JSON matching the provided schema. No explanations."
+            "You are a professional resume parser. Extract technical skills, soft skills, and profile information.\n"
+            "\nTECHNICAL SKILLS:"
+            "\n- Tools: ONLY include Git/GitHub/GitLab, Jenkins/GitHub Actions, Docker/Kubernetes, Jest/JUnit/Pytest, VS Code/IntelliJ"
+            "\n  DO NOT include: JWT, OAuth, OTP, REST, HTTP, SOAP, Render, Heroku, Vercel, generic 'CI/CD' or 'API'"
+            "\n- Programming languages, frameworks, databases, cloud platforms: extract as usual"
+            "\n\nSOFT SKILLS: Extract ALL soft skills from resume such as:"
+            "\n- Leadership, Communication, Problem-solving, Teamwork, Collaboration"
+            "\n- Project management, Time management, Adaptability, Creativity, Critical thinking"
+            "\n- Any other interpersonal or professional competencies mentioned"
+            "\n\nReturn ONLY valid JSON matching the provided schema. No explanations."
         )
 
         schema = {
@@ -306,12 +314,12 @@ class ResumeAnalyzerAgent:
                 "certifications": []
             },
             "extracted_skills": {
-                "programming_languages": [],
-                "frameworks": [],
-                "databases": [],
-                "cloud_platforms": [],
-                "tools": [],
-                "soft_skills": []
+                "programming_languages": ["Java", "Python", "C++"],
+                "frameworks": ["React", "Django", "Spring"],
+                "databases": ["MongoDB", "MySQL", "PostgreSQL"],
+                "cloud_platforms": ["AWS", "Azure", "GCP"],
+                "tools": ["Git", "GitHub", "Docker", "Jenkins"],
+                "soft_skills": ["Leadership", "Communication", "Problem-solving", "Teamwork"]
             },
             "projects": [{"name": "string", "description": "string", "technologies": []}],
             "achievements": [],
@@ -319,8 +327,11 @@ class ResumeAnalyzerAgent:
         }
 
         user = (
-            f"Extract ALL information from this resume including every single skill mentioned:\n\n{resume_text[:4000]}\n\n"
-            f"Return this exact JSON schema filled with extracted data:\n{json.dumps(schema, indent=2)}"
+            f"Extract ALL information from this resume:\n\n{resume_text[:4000]}\n\n"
+            f"IMPORTANT: For SOFT SKILLS, extract EVERY soft skill and competency mentioned in the resume. "
+            f"For TOOLS, use ONLY: Git/GitHub/GitLab, Jenkins/GitHub Actions, Docker/Kubernetes, Jest/JUnit/Pytest, VS Code/IntelliJ. "
+            f"Do NOT include: JWT, OAuth, OTP, REST, HTTP, SOAP, Render, Heroku, Vercel, generic 'CI/CD', or generic 'API'.\n\n"
+            f"Return this exact JSON schema with extracted data:\n{json.dumps(schema, indent=2)}"
         )
 
         try:
@@ -377,13 +388,41 @@ class ResumeAnalyzerAgent:
             }
 
     def normalize_skills(self, extracted_skills: Dict[str, List[str]]) -> List[str]:
-        """Flatten and normalize skills into single list"""
+        """Flatten and normalize TECHNICAL skills only (exclude soft skills and non-skill terms)"""
+        technical_categories = [
+            "programming_languages",
+            "frameworks",
+            "databases",
+            "cloud_platforms",
+            "tools"
+        ]
+        
+        # Terms that shouldn't be counted as skills (authentication/deployment concepts, etc.)
+        exclude_terms = {
+            "otp", "jwt", "ci/cd", "rest apis", "render", "heroku", "vercel",
+            "rest", "oauth", "saml", "mfa", "2fa", "ssh", "api", "soap",
+            "cors", "https", "http", "ssl", "tls", "vpn", "cdn", "dns"
+        }
+        
         all_skills = []
         for category, skills in extracted_skills.items():
-            if isinstance(skills, list):
+            if category in technical_categories and isinstance(skills, list):
                 all_skills.extend(skills)
         
-        normalized = list(set([s.strip().lower() for s in all_skills if s]))
+        # Normalize and filter
+        normalized = list(set([
+            s.strip().lower() 
+            for s in all_skills 
+            if s and s.strip().lower() not in exclude_terms
+        ]))
+        return sorted(normalized)
+
+    def extract_soft_skills(self, extracted_skills: Dict[str, List[str]]) -> List[str]:
+        """Extract soft skills only (separate from technical skills)"""
+        soft_skills = extracted_skills.get("soft_skills", [])
+        if not soft_skills:
+            return []
+        normalized = list(set([s.strip().lower() for s in soft_skills if s]))
         return sorted(normalized)
 
     def calculate_skill_gap(self, user_id: str, resume_skills: List[str]) -> Dict[str, Any]:
@@ -453,6 +492,7 @@ class ResumeAnalyzerAgent:
             print(f"  [3/3] Normalizing skills...")
             extracted_skills_dict = parsed_data.get("extracted_skills", {})
             normalized_skills = self.normalize_skills(extracted_skills_dict)
+            soft_skills = self.extract_soft_skills(extracted_skills_dict)
             
             # NOTE: Skill gap analysis moved to ReadinessAssessmentAgent
             # Gap analysis requires knowing target_role, which is selected AFTER resume upload
@@ -507,6 +547,7 @@ class ResumeAnalyzerAgent:
                 "parsed_profile": parsed_profile,
                 "extracted_skills": extracted_skills_dict,
                 "normalized_skills": normalized_skills,
+                "soft_skills": soft_skills,
                 "extraction_method": extraction_method,
                 "processing_time_seconds": round(processing_time, 2)
             }
@@ -517,13 +558,15 @@ class ResumeAnalyzerAgent:
             db.upsert_user(user_id, context)
             
             print(f"  ✓ Resume analysis complete in {processing_time:.2f}s")
-            print(f"  ✓ {len(normalized_skills)} skills extracted")
+            print(f"  ✓ {len(normalized_skills)} technical skills extracted")
+            print(f"  ✓ {len(soft_skills)} soft skills identified")
             
             return {
                 "status": "success",
                 "parsed_profile": parsed_profile,
                 "extracted_skills": extracted_skills_dict,
-                "normalized_skills": normalized_skills
+                "normalized_skills": normalized_skills,
+                "soft_skills": soft_skills
             }
             
         except RuntimeError as auth_err:

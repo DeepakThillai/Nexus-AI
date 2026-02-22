@@ -1,0 +1,183 @@
+{
+  "user_id": "user_1771747657",
+  "created_at": "2026-02-22T13:37:37.674859",
+  "last_updated": "2026-02-22T13:37:50.960827",
+  "profile": {
+    "name": "Abdullah N",
+    "email": "abdullahoffl200S@gmail.com",
+    "phone": "+91 85319 14065",
+    "education": {
+      "degree": null,
+      "institution": null,
+      "graduation_year": null,
+      "cgpa": null
+    },
+    "experience_years": 0,
+    "skills": {
+      "technical": [
+        "Java",
+        "C"
+      ],
+      "frameworks": [
+        "React",
+        "Node.js",
+        "Express",
+        "Flask"
+      ],
+      "databases": [
+        "MongoDB",
+        "MySQL"
+      ],
+      "tools": [
+        "Git",
+        "GitHub",
+        "AWS"
+      ],
+      "soft_skills": [
+        "Leadership",
+        "Collaboration",
+        "Problem-solving",
+        "Teamwork"
+      ]
+    },
+    "projects": [],
+    "certifications": [],
+    "achievements": [],
+    "languages": [],
+    "linkedin": null,
+    "github": null,
+    "resume_uploaded": true,
+    "resume_uploaded_at": "2026-02-22T13:37:50.960793",
+    "resume_file_name": "Resume.png",
+    "resume_archived_path": "./data/resumes/user_1771747657_Resume.png"
+  },
+  "career_state": {
+    "current_target_role": null,
+    "original_target_role": null,
+    "role_tier": null,
+    "role_history": []
+  },
+  "readiness_assessment": {
+    "status": null,
+    "confidence_score": 0.0,
+    "skill_match_percentage": 0,
+    "matched_skills": [],
+    "missing_skills": [],
+    "surplus_skills": [],
+    "recommendation": null,
+    "reasoning": null,
+    "last_assessed_at": null,
+    "assessment_history": []
+  },
+  "active_roadmap": {
+    "roadmap_id": null,
+    "created_at": null,
+    "duration_months": 5,
+    "total_weeks": 20,
+    "current_phase": null,
+    "current_week": null,
+    "completion_percentage": 0,
+    "phases": [],
+    "status": "not_started"
+  },
+  "progress": {
+    "weeks_completed": 0,
+    "actions_completed": 0,
+    "actions_failed": 0,
+    "current_streak_weeks": 0,
+    "total_hours_invested": 0,
+    "last_activity_at": null,
+    "weekly_engagement": {}
+  },
+  "reroute_state": {
+    "is_active": false,
+    "reroute_count": 0,
+    "original_roadmap_id": null,
+    "reroute_reason": null,
+    "reroute_options": [],
+    "selected_option": null,
+    "rerouted_at": null,
+    "can_return_to_previous": true
+  },
+  "current_actions": {
+    "this_week": [],
+    "upcoming": [],
+    "blocked": []
+  },
+  "resume_analysis": {
+    "parsed_profile": {
+      "name": "Abdullah N",
+      "email": "abdullahoffl200S@gmail.com",
+      "phone": "+91 85319 14065",
+      "location": "Pondicherry, India",
+      "linkedin": "linkedin.com/in/abdullahxdev",
+      "github": "github.com/Abdullah-218",
+      "experience_years": 0,
+      "job_titles": [
+        "Backend Developer"
+      ],
+      "education": [
+        "B.Tech Computer Science and Engineering, SRI MANAKULA VINAYAGAR ENGINEERING COLLEGE, PUDUCHERRY (2023 - 2027) CGPA: 8.8",
+        "Higher Secondary, NEW MODERN VIDHYA MANDIR HR SEC SCHOOL, PUDUCHERRY (2022 - 2023) 83.1%",
+        "Secondary Schooling, NEW MODERN VIDHYA MANDIR HR SEC SCHOOL, PUDUCHERRY (2020 - 2021) PASS"
+      ],
+      "certifications": [
+        "NPTEL Star | DSA in Java (Top 2% Nationwide)",
+        "AWS Academy Cloud Foundations | Amazon Web Services",
+        "Programming in Java | NPTEL (IIT Certified)",
+        "Google AI/ML Virtual Internship | EduSkill & Google",
+        "CCNA (Cisco Certified Network Associate) | Cisco"
+      ]
+    },
+    "extracted_skills": {
+      "programming_languages": [
+        "Java",
+        "C"
+      ],
+      "frameworks": [
+        "React",
+        "Node.js",
+        "Express",
+        "Flask"
+      ],
+      "databases": [
+        "MongoDB",
+        "MySQL"
+      ],
+      "cloud_platforms": [
+        "AWS"
+      ],
+      "tools": [
+        "Git",
+        "GitHub"
+      ],
+      "soft_skills": [
+        "Leadership",
+        "Collaboration",
+        "Problem-solving",
+        "Teamwork"
+      ]
+    },
+    "normalized_skills": [
+      "aws",
+      "c",
+      "express",
+      "flask",
+      "git",
+      "github",
+      "java",
+      "mongodb",
+      "mysql",
+      "node.js",
+      "react"
+    ],
+    "upload_time": "2026-02-22T13:37:50.960814",
+    "archived_path": "./data/resumes/user_1771747657_Resume.png",
+    "original_filename": "Resume.png"
+  },
+  "metadata": {
+    "total_sessions": 0,
+    "agent_interaction_count": {},
+    "system_events": []
+  }
+}
