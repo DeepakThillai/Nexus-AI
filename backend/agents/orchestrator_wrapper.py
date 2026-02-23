@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # ── Import original agents (unmodified) ───────────────────────────
-from agentic_career_navigator import (
+from backend.agents.agentic_career_navigator import (
     ReadinessAssessmentAgent,
     MarketIntelligenceAgent,
     RoadmapAgent,
@@ -31,7 +31,7 @@ from agentic_career_navigator import (
     call_llm,
     extract_json,
 )
-from db import db
+from backend.database.db import db
 
 # ── In-memory session cache ───────────────────────────────────────
 # Stores ephemeral Q&A data (questions + temp conversation state).
@@ -1013,7 +1013,7 @@ def analyze_resume_file(user_id: str, file_path: str, file_name: str) -> dict:
         }
     """
     try:
-        from agentic_career_navigator import ResumeAnalyzerAgent
+        from backend.agents.agentic_career_navigator import ResumeAnalyzerAgent
         
         print(f"[Resume Analysis] Processing {file_name} for user {user_id}...")
         

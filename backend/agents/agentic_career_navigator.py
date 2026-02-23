@@ -42,8 +42,8 @@ except ImportError:
 from groq import AuthenticationError, Groq
 
 # Import database modules
-from user_context import UserContextManager
-from db import db
+from backend.core.user_context import UserContextManager
+from backend.database.db import db
 
 # Import resume analysis dependencies
 try:
@@ -1565,7 +1565,16 @@ class Orchestrator:
             return self._handle_manual_skills_entry(context)
         
         # Copy resume file to archive directory
-        resume_upload_dir = os.getenv("RESUME_UPLOAD_DIR", "./data/resumes")
+        # Point to parent Nexus-AI/data/resumes folder
+        if os.getenv("RESUME_UPLOAD_DIR"):
+            resume_upload_dir = os.getenv("RESUME_UPLOAD_DIR")
+        else:
+            # Navigate from backend/agents/ up to Nexus-AI/ then to data/resumes
+            resume_upload_dir = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                "data",
+                "resumes"
+            )
         os.makedirs(resume_upload_dir, exist_ok=True)
         
         original_filename = os.path.basename(file_path)

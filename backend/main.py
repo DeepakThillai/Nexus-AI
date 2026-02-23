@@ -23,8 +23,8 @@ try:
 except ImportError:
     pass
 
-from db import db
-from schemas import (
+from backend.database.db import db
+from backend.database.schemas import (
     OnboardRequest, OnboardResponse,
     ReadinessStartRequest, ReadinessQuestionsResponse,
     ReadinessEvaluateRequest, ReadinessResultResponse,
@@ -36,7 +36,7 @@ from schemas import (
     HandsOnChatRequest, HandsOnChatResponse,
     DashboardResponse,
 )
-import orchestrator_wrapper as ow
+from backend.agents import orchestrator_wrapper as ow
 
 
 # ═══════════════════════════════════════════════════════════════════

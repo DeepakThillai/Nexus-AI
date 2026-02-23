@@ -30,9 +30,10 @@ class UserContextManager:
             context_dir: Directory to store user context files (default: data/user_contexts)
         """
         if context_dir is None:
-            # Default to data/user_contexts folder
+            # Point to parent Nexus-AI/data/user_contexts folder
+            # Navigate from backend/core/ up to Nexus-AI/ then to data/user_contexts
             context_dir = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
                 "data",
                 "user_contexts"
             )
@@ -255,8 +256,9 @@ class UserContextManager:
         context = self.load_context(user_id)
         
         if not export_path:
+            # Point to parent Nexus-AI/data/exports folder
             export_dir = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
                 "data",
                 "exports"
             )
