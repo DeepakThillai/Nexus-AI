@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Suspense } from "react";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, TrendingDown, TrendingUp, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
@@ -47,6 +48,10 @@ function ScoreGauge({ score }: { score: number }) {
 }
 
 export default function ResultPage() {
+  return <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 size={32} className="animate-spin text-blue-400" /></div>}><ResultPageInner /></Suspense>;
+}
+
+function ResultPageInner() {
   const router = useRouter();
   const params = useSearchParams();
   const userId = params.get("uid") || "";

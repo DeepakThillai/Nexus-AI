@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Suspense } from "react";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -35,6 +36,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function DashboardPage() {
+  return <Suspense fallback={<div className="min-h-screen bg-[#0F1117] flex items-center justify-center"><Loader2 size={32} className="animate-spin text-blue-400" /></div>}><DashboardPageInner /></Suspense>;
+}
+
+function DashboardPageInner() {
   const router   = useRouter();
   const params   = useSearchParams();
   const storeUid = useStore((s) => s.userId);

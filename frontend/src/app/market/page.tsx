@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Suspense } from "react";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { TrendingUp, TrendingDown, Minus, Building2, Loader2, ArrowLeft, Zap } from "lucide-react";
 import { getMarket } from "@/lib/api";
 import { useStore } from "@/store/useStore";
@@ -30,6 +31,10 @@ function MetricBadge({ label, value, type }: { label: string; value: string; typ
 }
 
 export default function MarketPage() {
+  return <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#0F1117]"><Loader2 size={28} className="animate-spin text-blue-400" /></div>}><MarketPageInner /></Suspense>;
+}
+
+function MarketPageInner() {
   const params   = useSearchParams();
   const storeUid = useStore((s) => s.userId);
   const userId   = params.get("uid") || storeUid || "";
@@ -172,6 +177,3 @@ export default function MarketPage() {
     </div>
   );
 }
-
-// Need CartesianGrid import
-import { CartesianGrid } from "recharts";

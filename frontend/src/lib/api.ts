@@ -152,3 +152,20 @@ export const handsOnChat = async (payload: HandsOnChatPayload) => {
   const res = await api.post("/api/hands-on/chat", payload);
   return res.data as { reply: string; conversation_history: { role: string; content: string }[] };
 };
+
+/** POST /api/resume/upload — upload PDF/image resume file */
+export const uploadResumeFile = async (user_id: string, file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("user_id", user_id);
+  const res = await api.post("/api/resume/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res.data;
+};
+
+/** POST /api/resume/extract-skills — extract skills from resume text */
+export const extractSkillsFromResume = async (resume_text: string) => {
+  const res = await api.post("/api/resume/extract-skills", { resume_text });
+  return res.data as { skills: string[]; message: string };
+};

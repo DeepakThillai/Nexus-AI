@@ -1,10 +1,17 @@
+import os
+from pathlib import Path
 from groq import Groq
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env")
+except ImportError:
+    pass
 
 class HandsOnAgent:
     def __init__(self):
-        # Use the working pattern
         self.client = Groq(
-            api_key="XXX"
+            api_key=os.getenv("GROQ_API_KEY")
         )
 
         # This is our "memory"

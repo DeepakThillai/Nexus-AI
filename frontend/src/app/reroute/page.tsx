@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Suspense } from "react";
 import { motion } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
 import { RefreshCw, ArrowLeft, Loader2, CheckCircle, AlertTriangle, ChevronRight } from "lucide-react";
@@ -33,6 +34,10 @@ function ConfidenceCircle({ score }: { score: number }) {
 }
 
 export default function ReroutePage() {
+  return <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#0F1117]"><Loader2 size={28} className="animate-spin text-blue-400" /></div>}><ReroutePageInner /></Suspense>;
+}
+
+function ReroutePageInner() {
   const router   = useRouter();
   const params   = useSearchParams();
   const storeUid = useStore((s) => s.userId);
@@ -71,9 +76,6 @@ export default function ReroutePage() {
       <Loader2 size={28} className="animate-spin text-blue-400" />
     </div>
   );
-
-  // Get confidence from dashboard summary (not available directly, use analysis)
-  const confidence = analysis ? 0 : 0;
 
   return (
     <div className="min-h-screen bg-[#0F1117] bg-grid">

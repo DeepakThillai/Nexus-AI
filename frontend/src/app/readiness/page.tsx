@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Brain, ChevronRight, Loader2, CheckCircle } from "lucide-react";
@@ -8,6 +9,10 @@ import { useStore } from "@/store/useStore";
 import ParticleBackground from "@/components/ParticleBackground";
 
 export default function ReadinessPage() {
+  return <Suspense fallback={<div className="min-h-screen bg-[#0F1117] flex items-center justify-center"><Loader2 size={32} className="animate-spin text-blue-400" /></div>}><ReadinessPageInner /></Suspense>;
+}
+
+function ReadinessPageInner() {
   const router     = useRouter();
   const params     = useSearchParams();
   const userId     = params.get("uid") || useStore.getState().userId || "";

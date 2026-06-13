@@ -18,8 +18,11 @@ import time
 import shutil
 
 try:
+    from pathlib import Path
     from dotenv import load_dotenv
-    load_dotenv()
+    # Load .env from the backend directory regardless of where the server is launched from
+    _env_path = Path(__file__).resolve().parent / ".env"
+    load_dotenv(dotenv_path=_env_path)
 except ImportError:
     pass
 

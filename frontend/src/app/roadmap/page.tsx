@@ -11,7 +11,7 @@
  *   3. POST /api/action/assess     → ActionAssessmentAgent evaluates, updates score + confidence
  * After submit the action card refreshes to show passed/failed + score.
  */
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import {
@@ -413,6 +413,10 @@ function AssessmentModal({ action, userId, onClose, onComplete }: AssessmentModa
 
 // ── Main page ────────────────────────────────────────────────────
 export default function RoadmapPage() {
+  return <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#0F1117]"><Loader2 size={28} className="animate-spin text-blue-400" /></div>}><RoadmapPageInner /></Suspense>;
+}
+
+function RoadmapPageInner() {
   const params   = useSearchParams();
   const storeUid = useStore((s) => s.userId);
   const userId   = params.get("uid") || storeUid || "";

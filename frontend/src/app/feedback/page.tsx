@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Suspense } from "react";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { TrendingUp, AlertCircle, Lightbulb, Target, Calendar, Loader2, ArrowLeft, RefreshCw, Smile } from "lucide-react";
@@ -32,6 +33,10 @@ function AdjustmentCard({ adj }: { adj: any }) {
 }
 
 export default function FeedbackPage() {
+  return <Suspense fallback={<div className="min-h-screen flex flex-col items-center justify-center bg-[#0F1117] gap-4"><Loader2 size={28} className="animate-spin text-blue-400" /></div>}><FeedbackPageInner /></Suspense>;
+}
+
+function FeedbackPageInner() {
   const params   = useSearchParams();
   const storeUid = useStore((s) => s.userId);
   const userId   = params.get("uid") || storeUid || "";

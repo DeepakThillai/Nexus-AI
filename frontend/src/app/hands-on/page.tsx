@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import { Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { Send, Bot, User, Loader2, ArrowLeft, Zap } from "lucide-react";
@@ -75,6 +76,10 @@ function AssistantMessage({ content }: { content: string }) {
 }
 
 export default function HandsOnPage() {
+  return <Suspense fallback={<div className="min-h-screen bg-[#0F1117] flex items-center justify-center"><Loader2 size={28} className="animate-spin text-blue-400" /></div>}><HandsOnPageInner /></Suspense>;
+}
+
+function HandsOnPageInner() {
   const params   = useSearchParams();
   const storeUid = useStore((s) => s.userId);
   const userId   = params.get("uid") || storeUid || "";

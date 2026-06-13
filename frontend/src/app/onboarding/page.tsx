@@ -1,9 +1,10 @@
 "use client";
 import { useState } from "react";
+import { Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRight, ChevronLeft, Plus, X, Loader2, Briefcase, Zap, Star, AlertTriangle, Upload } from "lucide-react";
-import { onboardUser } from "@/lib/api";
+import { onboardUser, uploadResumeFile } from "@/lib/api";
 import { useStore } from "@/store/useStore";
 import ParticleBackground from "@/components/ParticleBackground";
 
@@ -43,6 +44,10 @@ function TagInput({ label, value, onChange, placeholder, icon: Icon, color }: an
 }
 
 export default function OnboardingPage() {
+  return <Suspense fallback={<div className="min-h-screen bg-[#0F1117] flex items-center justify-center"><Loader2 size={32} className="animate-spin text-blue-400" /></div>}><OnboardingPageInner /></Suspense>;
+}
+
+function OnboardingPageInner() {
   const router       = useRouter();
   const params       = useSearchParams();
   const setUser      = useStore((s) => s.setUser);
@@ -83,25 +88,7 @@ export default function OnboardingPage() {
     setResumeLoading(true);
     setError("");
     try {
-      // Create FormData for multipart upload
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("user_id", userId || "temp-user");
-
-      console.log("📄 Uploading resume:", file.name);
-
-      // Call API with file upload
-      const response = await fetch("http://localhost:8000/api/resume/upload", {
-        method: "POST",
-        body: formData, // Don't set Content-Type header - browser will set it with boundary
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to extract skills from resume");
-      }
-
-      const data = await response.json();
+      const data = await uploadResumeFile(userId || "temp-user", file);
       console.log("✅ Resume analysis result:", data);
 
       if (data.status === "success") {
