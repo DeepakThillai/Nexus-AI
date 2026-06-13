@@ -9,6 +9,71 @@ import ParticleBackground from "@/components/ParticleBackground";
 
 interface Message { role: "user" | "assistant"; content: string; }
 
+const sectionLabels = ["Task", "Current Step", "What To Do", "Reply After Completion"];
+
+function formatInline(text: string) {
+  return text.split(/(`[^`]+`|\*\*[^*]+\*\*)/g).map((part, index) => {
+    if (part.startsWith("`") && part.endsWith("`")) {
+      return <code key={index} className="rounded bg-black/30 px-1.5 py-0.5 font-mono text-[0.85em] text-blue-200">{part.slice(1, -1)}</code>;
+    }
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={index} className="font-semibold text-white">{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
+function AssistantMessage({ content }: { content: string }) {
+  const normalized = sectionLabels.reduce(
+    (text, label) => text.replace(new RegExp(`^[ \\t]*(?:\\*\\*)?${label}:(?:\\*\\*)?[ \\t]*`, "gm"), `${label}:\n`),
+    content,
+  ).trim();
+  const lines = normalized.split("\n");
+  let inCodeBlock = false;
+
+  return (
+    <div className="space-y-2.5">
+      {lines.map((rawLine, index) => {
+        const line = rawLine.trim();
+
+        if (line.startsWith("```")) {
+          inCodeBlock = !inCodeBlock;
+          return null;
+        }
+        if (inCodeBlock) {
+          return <pre key={index} className="overflow-x-auto rounded-lg border border-white/10 bg-black/30 px-3 py-2 font-mono text-xs text-blue-100"><code>{rawLine}</code></pre>;
+        }
+        if (!line) return null;
+
+        const section = sectionLabels.find((label) => line.toLowerCase() === `${label.toLowerCase()}:`);
+        if (section) {
+          return (
+            <div key={index} className="flex items-center gap-2 pt-2 first:pt-0">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+              <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-blue-300">{section}</h3>
+            </div>
+          );
+        }
+
+        const heading = line.match(/^#{1,3}\s+(.+)$/);
+        if (heading) return <h3 key={index} className="pt-1 font-semibold text-white">{formatInline(heading[1])}</h3>;
+
+        const listItem = line.match(/^[-*\u2022]\s+(.+)$/);
+        if (listItem) {
+          return <div key={index} className="flex gap-2 pl-1"><span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-white/50" /><p>{formatInline(listItem[1])}</p></div>;
+        }
+
+        const numberedItem = line.match(/^(\d+)[.)]\s+(.+)$/);
+        if (numberedItem) {
+          return <div key={index} className="flex gap-2"><span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-blue-500/15 px-1 text-[10px] font-bold text-blue-300">{numberedItem[1]}</span><p>{formatInline(numberedItem[2])}</p></div>;
+        }
+
+        return <p key={index} className="whitespace-pre-wrap">{formatInline(line)}</p>;
+      })}
+    </div>
+  );
+}
+
 export default function HandsOnPage() {
   const params   = useSearchParams();
   const storeUid = useStore((s) => s.userId);
@@ -121,9 +186,9 @@ export default function HandsOnPage() {
                 ${msg.role === "user"
                   ? "bg-blue-600 text-white rounded-tr-sm"
                   : "glass rounded-tl-sm text-white/80"}`}>
-                {msg.content.split("\n").map((line, j) => (
-                  <span key={j}>{line}{j < msg.content.split("\n").length - 1 && <br />}</span>
-                ))}
+                {msg.role === "assistant"
+                  ? <AssistantMessage content={msg.content} />
+                  : <p className="whitespace-pre-wrap">{msg.content}</p>}
               </div>
             </motion.div>
           ))}

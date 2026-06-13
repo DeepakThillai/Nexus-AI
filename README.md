@@ -3,6 +3,44 @@
 
 ---
 
+## Application Screenshots
+
+### Landing Page
+
+![Nexus-AI landing page](images/first_page.png)
+
+### Dashboard
+
+![Nexus-AI dashboard](images/dashboard.png)
+
+### Readiness Assessment
+
+| Assessment | Readiness Score |
+|:---:|:---:|
+| ![Readiness assessment](images/assessment.png) | ![Readiness score](images/readiness_score.png) |
+
+### Personalized Roadmap
+
+![Personalized career roadmap](images/roadmap.png)
+
+### Market Intelligence
+
+![Career market report](images/market_report.png)
+
+### Hands-On AI Mentor
+
+| Practical Task | Guided Mentoring |
+|:---:|:---:|
+| ![Hands-on practical task](images/handson1.png) | ![Hands-on guided mentoring](images/handson2.png) |
+
+### Career Rerouting and Feedback
+
+| Career Rerouting | Performance Feedback |
+|:---:|:---:|
+| ![Career rerouting](images/reroute.png) | ![Performance feedback](images/feedback.png) |
+
+---
+
 ## Quick Start (3 terminals)
 
 ```
