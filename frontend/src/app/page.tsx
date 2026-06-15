@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, Brain, Target, TrendingUp, Zap, BarChart3, Map } from "lucide-react";
+import { ArrowRight, Brain, Target, TrendingUp, Zap, BarChart3, Map, HelpCircle } from "lucide-react";
 import HeroParticleBackground from "@/components/HeroParticleBackground";
 
 const features = [
@@ -39,6 +39,10 @@ export default function LandingPage() {
             <span className="font-bold text-lg tracking-tight">Nexus-AI</span>
           </div>
           <div className="flex items-center gap-3">
+            <Link href="/help" className="btn-ghost text-sm py-2 px-4 flex items-center gap-1.5">
+              <HelpCircle size={14} /> Help
+            </Link>
+            <Link href="/credits" className="btn-ghost text-sm py-2 px-4">Credits</Link>
             <Link href="/auth" className="btn-ghost text-sm py-2 px-4">Sign In</Link>
             <Link href="/auth" className="btn-primary text-sm py-2 px-4">Get Started</Link>
           </div>
@@ -143,6 +147,13 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-white/[0.06] py-8 px-6 text-center text-white/30 text-sm">
+        <div className="flex items-center justify-center gap-4 mb-3">
+          <Link href="/help" className="hover:text-white/60 transition-colors">Help</Link>
+          <span>·</span>
+          <Link href="/credits" className="hover:text-white/60 transition-colors">Credits</Link>
+          <span>·</span>
+          <a href="mailto:deepakthillaikannu@gmail.com" className="hover:text-white/60 transition-colors">Contact</a>
+        </div>
         © 2026 Nexus-AI — Agentic Career Navigator
       </footer>
     </div>

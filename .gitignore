@@ -40,6 +40,8 @@ htmlcov/
 .env.production.local
 .env.test.local
 .env.development.local
+backend/.env
+backend/.env.*
 
 # Node modules (Frontend)
 node_modules/
@@ -84,6 +86,12 @@ ehthumbs.db
 *.sqlite
 *.sqlite3
 mongo_data/
+
+# Runtime data (keep dirs, ignore contents)
+data/resumes/*
+data/user_contexts/*
+!data/resumes/.gitkeep
+!data/user_contexts/.gitkeep
 
 # Temporary files
 *.tmp

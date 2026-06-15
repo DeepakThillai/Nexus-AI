@@ -2,7 +2,6 @@
 Database layer for MongoDB persistence
 """
 from .db import Database, db
-from .mongo_store import MongoStore
 from .schemas import (
     OnboardRequest,
     OnboardResponse,
@@ -28,7 +27,6 @@ from .schemas import (
 __all__ = [
     "Database",
     "db",
-    "MongoStore",
     "OnboardRequest",
     "OnboardResponse",
     "ReadinessStartRequest",

@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Brain, TrendingUp, Target, Calendar, Map, BarChart3, MessageSquare, RefreshCw, Loader2, AlertTriangle } from "lucide-react";
+import { Brain, TrendingUp, Target, Calendar, Map, BarChart3, MessageSquare, RefreshCw, Loader2, AlertTriangle, HelpCircle, Users } from "lucide-react";
 import { getDashboard } from "@/lib/api";
 import Link from "next/link";
 import { useStore } from "@/store/useStore";
@@ -74,6 +74,8 @@ function DashboardPageInner() {
     { href: `/hands-on?uid=${userId}`,   icon: MessageSquare,label: "Hands-On" },
     { href: `/feedback?uid=${userId}`,   icon: TrendingUp,   label: "Feedback" },
     { href: `/reroute?uid=${userId}`,    icon: RefreshCw,    label: "Reroute" },
+    { href: `/help`,                     icon: HelpCircle,   label: "Help" },
+    { href: `/credits`,                  icon: Users,        label: "Credits" },
   ];
 
   return (

@@ -1,0 +1,52 @@
+services:
+
+  # ── Backend: FastAPI ─────────────────────────────────────────────
+  backend:
+    build:
+      context: .          # project root — so backend/ is importable as a package
+      dockerfile: backend/Dockerfile
+    container_name: nexus-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB=${MONGO_DB:-career_navigation}
+      - MONGO_COLL=${MONGO_COLL:-user_contexts}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - RESUME_UPLOAD_DIR=/app/data/resumes
+      - USER_CONTEXT_DIR=/app/data/user_contexts
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - resume_data:/app/data/resumes
+      - context_data:/app/data/user_contexts
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ── Frontend: Next.js ────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Points to the backend service name inside the Docker network
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:8000}
+    container_name: nexus-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://backend:8000}
+    depends_on:
+      backend:
+        condition: service_healthy
+
+# ── Named volumes for persistent data ───────────────────────────
+volumes:
+  resume_data:
+  context_data:

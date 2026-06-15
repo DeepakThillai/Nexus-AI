@@ -45,7 +45,7 @@ Nexus-AI deploys specialised AI agents to assess your career readiness, generate
 |---|---|
 | Frontend | Next.js 14 (App Router), TypeScript, Tailwind CSS, Framer Motion, Zustand, Recharts |
 | Backend | FastAPI, Python 3.10+, Uvicorn |
-| AI | Groq API (LLaMA-class models) |
+| AI | Groq API (RAG)) |
 | Database | MongoDB Atlas (cloud, free tier works) |
 | Resume parsing | pdfminer.six, PyPDF2, Pillow, pytesseract |
 
@@ -108,6 +108,72 @@ You need **3 terminals** running simultaneously.
 Terminal 1 → MongoDB Atlas  (cloud — no local install)
 Terminal 2 → Backend        (FastAPI on :8000)
 Terminal 3 → Frontend       (Next.js on :3000)
+```
+
+---
+
+## Docker (recommended for deployment)
+
+The entire stack runs with a single command.
+
+### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/) + [Docker Compose](https://docs.docker.com/compose/install/) installed
+- A MongoDB Atlas connection string (free tier — see Step 1 below)
+- A Groq API key from https://console.groq.com
+
+### 1 — Create your `.env` file
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` at the project root:
+
+```env
+GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/
+MONGO_DB=career_navigation
+MONGO_COLL=user_contexts
+FRONTEND_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+### 2 — Build and run
+
+```bash
+docker compose up --build
+```
+
+First build takes ~3–5 minutes (installs all deps, builds Next.js). Subsequent starts are instant.
+
+| Service | URL |
+|---|---|
+| Frontend | http://localhost:3000 |
+| Backend API | http://localhost:8000 |
+| Health check | http://localhost:8000/health |
+
+### Useful commands
+
+```bash
+# Run in background
+docker compose up --build -d
+
+# View logs
+docker compose logs -f
+
+# View logs for one service
+docker compose logs -f backend
+docker compose logs -f frontend
+
+# Stop everything
+docker compose down
+
+# Stop and remove volumes (clears uploaded resumes)
+docker compose down -v
+
+# Rebuild a single service after code changes
+docker compose up --build backend
+docker compose up --build frontend
 ```
 
 ---
