@@ -651,6 +651,8 @@ class ReadinessAssessmentAgent:
         system = (
             "You are a senior career evaluation AI. "
             "Evaluate the candidate's readiness based on their Q&A responses. "
+            "Be fair and give benefit of the doubt — partial answers and genuine attempts "
+            "should be scored positively. "
             "Return ONLY valid JSON matching the exact schema provided."
         )
         qa_text = "\n".join(
@@ -916,8 +918,9 @@ class ActionAssessmentAgent:
 
     def _evaluate(self, action_title: str, target_role: str, qa_pairs: list[dict]) -> dict:
         system = (
-            "You are a strict but fair career skills evaluator. "
-            "Evaluate the candidate's mastery of the given action based on their answers. "
+            "You are a fair career skills evaluator. "
+            "Evaluate the candidate's understanding of the given action based on their answers. "
+            "Give benefit of the doubt — partial answers and genuine attempts should be scored positively. "
             "Return ONLY valid JSON."
         )
         qa_text = "\n".join(f"Q: {p['question']}\nA: {p['answer']}" for p in qa_pairs)

@@ -994,47 +994,149 @@ Return format (ONLY JSON):
 
 
 # ═══════════════════════════════════════════════════════════════════
-#  RESUME FILE ANALYSIS (using ResumeAnalyzerAgent)
+#  RESUME FILE ANALYSIS  
+#  Uses pymupdf for text extraction + Groq for skills/strengths/weaknesses
 # ═══════════════════════════════════════════════════════════════════
 
 def analyze_resume_file(user_id: str, file_path: str, file_name: str) -> dict:
     """
-    Analyze resume file (PDF or image) using ResumeAnalyzerAgent.
-    Extracts text, parses structure, and stores in database.
-    
-    Returns:
-        {
-            "status": "success" | "error",
-            "message": str,
-            "parsed_profile": dict,
-            "extracted_skills": dict,
-            "normalized_skills": list[str],
-            "skill_gap_analysis": dict (optional)
-        }
+    Extract text from a PDF/image resume, then call Groq to parse:
+      - skills      (technologies, tools, languages, frameworks)
+      - strengths   (inferred candidate strengths)
+      - weaknesses  (gaps, missing skills, areas for improvement)
+
+    Returns the same shape the frontend onboarding page expects:
+      {
+        "status": "success",
+        "normalized_skills": [...],
+        "strengths": [...],
+        "weaknesses": [...],
+        "soft_skills": [...],
+        "parsed_profile": { "name": ..., "phone": ..., "experience_years": ... }
+      }
     """
+    import os
+    import time
+
+    start = time.time()
+
+    # ── 1. Extract raw text ───────────────────────────────────────
+    raw_text = ""
+    ext = os.path.splitext(file_name)[1].lower()
+
     try:
-        from backend.agents.agentic_career_navigator import ResumeAnalyzerAgent
-        
-        print(f"[Resume Analysis] Processing {file_name} for user {user_id}...")
-        
-        agent = ResumeAnalyzerAgent()
-        result = agent.run({
-            "user_id": user_id,
-            "file_path": file_path,
-            "file_name": file_name
-        })
-        
-        return result
-        
-    except ImportError:
+        if ext == ".pdf":
+            import fitz  # pymupdf
+            doc = fitz.open(file_path)
+            parts = [page.get_text() for page in doc]
+            doc.close()
+            raw_text = "\n".join(parts).strip()
+        else:
+            # Image resume — use pytesseract OCR
+            try:
+                from PIL import Image
+                import pytesseract
+                img = Image.open(file_path)
+                raw_text = pytesseract.image_to_string(img).strip()
+            except Exception as ocr_err:
+                print(f"[resume] OCR failed: {ocr_err}")
+                raw_text = ""
+    except Exception as extract_err:
+        print(f"[resume] text extraction failed: {extract_err}")
         return {
             "status": "error",
-            "message": "ResumeAnalyzerAgent not available"
+            "message": f"Could not read file: {str(extract_err)[:120]}",
         }
-    except Exception as e:
-        print(f"[Resume Analysis] Error: {str(e)[:100]}")
+
+    if not raw_text:
         return {
             "status": "error",
-            "message": f"Failed to analyze resume: {str(e)[:100]}"
+            "message": "No text found in the file. If this is a scanned PDF, please use a text-based PDF.",
         }
+
+    # ── 2. Call Groq ──────────────────────────────────────────────
+    from groq import Groq
+
+    api_key = os.getenv("GROQ_API_KEY", "")
+    client = Groq(api_key=api_key)
+
+    system_prompt = """You are an expert resume reviewer.
+Analyze the resume and return ONLY valid JSON with this exact schema:
+{
+  "skills": [],
+  "strengths": [],
+  "weaknesses": [],
+  "soft_skills": [],
+  "name": "",
+  "phone": "",
+  "experience_years": 0
+}
+Rules:
+- skills = technologies, tools, programming languages, frameworks, technical skills
+- strengths = candidate strengths inferred from experience, projects, achievements
+- weaknesses = missing skills, gaps, areas for improvement relevant to a tech career
+- soft_skills = communication, teamwork, leadership, etc.
+- name = full name from the resume header (empty string if not found)
+- phone = phone number (empty string if not found)
+- experience_years = estimated years of experience as an integer (0 if unclear)
+- Return valid JSON only — no markdown, no explanation"""
+
+    try:
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-120b",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user",   "content": raw_text[:8000]},  # trim to avoid token limit
+            ],
+            temperature=0.2,
+            max_completion_tokens=2048,
+            stream=False,
+        )
+        raw_resp = response.choices[0].message.content.strip()
+    except Exception as llm_err:
+        print(f"[resume] LLM call failed: {llm_err}")
+        return {
+            "status": "error",
+            "message": f"AI analysis failed: {str(llm_err)[:120]}",
+        }
+
+    # ── 3. Parse JSON ─────────────────────────────────────────────
+    try:
+        parsed = extract_json(raw_resp)
+    except Exception:
+        # Fallback: brute-force JSON extraction
+        import re as _re
+        m = _re.search(r'\{.*\}', raw_resp, _re.DOTALL)
+        if m:
+            try:
+                import json as _json
+                parsed = _json.loads(m.group())
+            except Exception:
+                parsed = {}
+        else:
+            parsed = {}
+
+    skills     = [str(s).strip() for s in parsed.get("skills",     []) if s]
+    strengths  = [str(s).strip() for s in parsed.get("strengths",  []) if s]
+    weaknesses = [str(s).strip() for s in parsed.get("weaknesses", []) if s]
+    soft_skills= [str(s).strip() for s in parsed.get("soft_skills",[]) if s]
+
+    elapsed = round(time.time() - start, 2)
+    print(f"[resume] extracted {len(skills)} skills, {len(strengths)} strengths, "
+          f"{len(weaknesses)} weaknesses in {elapsed}s for {user_id}")
+
+    return {
+        "status": "success",
+        "message": f"Extracted {len(skills)} skills, {len(strengths)} strengths, {len(weaknesses)} weaknesses.",
+        "normalized_skills": skills,
+        "strengths":         strengths,
+        "weaknesses":        weaknesses,
+        "soft_skills":       soft_skills,
+        "parsed_profile": {
+            "name":             parsed.get("name",             ""),
+            "phone":            parsed.get("phone",            ""),
+            "experience_years": int(parsed.get("experience_years", 0)),
+        },
+        "processing_time_seconds": elapsed,
+    }
 

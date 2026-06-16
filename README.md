@@ -140,11 +140,19 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 ### 2 — Build and run
 
+**Production** (code baked into image — use for deployment):
 ```bash
 docker compose up --build
 ```
+After any code change, run this again to rebuild and redeploy.
 
-First build takes ~3–5 minutes (installs all deps, builds Next.js). Subsequent starts are instant.
+**Development** (live reload — use while coding):
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+- Backend: any `.py` file change → auto-restarts instantly (uvicorn `--reload`)
+- Frontend: any `.tsx` / `.ts` / `.css` change → hot-reloads in browser instantly
+- No rebuild needed after source changes
 
 | Service | URL |
 |---|---|
@@ -155,25 +163,25 @@ First build takes ~3–5 minutes (installs all deps, builds Next.js). Subsequent
 ### Useful commands
 
 ```bash
+# ── Production ─────────────────────────────────────────────────
 # Run in background
 docker compose up --build -d
 
 # View logs
 docker compose logs -f
 
-# View logs for one service
-docker compose logs -f backend
-docker compose logs -f frontend
-
 # Stop everything
 docker compose down
 
-# Stop and remove volumes (clears uploaded resumes)
+# Stop and wipe volumes (clears uploaded resumes)
 docker compose down -v
 
-# Rebuild a single service after code changes
-docker compose up --build backend
-docker compose up --build frontend
+# ── Development ────────────────────────────────────────────────
+# Start dev mode (hot reload, no rebuild on changes)
+docker compose -f docker-compose.dev.yml up --build
+
+# Stop dev containers
+docker compose -f docker-compose.dev.yml down
 ```
 
 ---

@@ -1,0 +1,25 @@
+# Dev-only image — runs next dev with hot reload
+# Source code is mounted as a volume, not copied in
+FROM node:20-alpine3.20
+
+WORKDIR /app
+
+# Install dependencies (from package.json baked in at build time)
+COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps
+
+# Copy config files needed at startup
+# (src/ is mounted as a volume at runtime — not copied here)
+COPY tsconfig.json ./
+COPY next.config.js ./
+COPY tailwind.config.ts ./
+COPY postcss.config.js ./
+COPY next-env.d.ts ./
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+ENV NEXT_TELEMETRY_DISABLED=1
+
+CMD ["npm", "run", "dev"]

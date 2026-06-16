@@ -93,32 +93,26 @@ function OnboardingPageInner() {
 
       if (data.status === "success") {
         // Extract technical and soft skills from response
-        const extractedSkills = data.normalized_skills || [];
+        const extractedSkills  = data.normalized_skills || [];
+        const extractedStrengths  = data.strengths  || [];
+        const extractedWeaknesses = data.weaknesses || [];
         const softSkills = data.soft_skills || [];
-        
-        console.log(`✓ Extracted ${extractedSkills.length} technical skills from resume`);
-        console.log(`✓ Identified ${softSkills.length} soft skills from resume`);
 
-        // Store extracted data for later use
+        // Store extracted data for preview display
         setExtractedData(data);
 
-        // Auto-populate name and phone if available
+        // Auto-populate name, phone, experience if available
         const parsedProfile = data.parsed_profile || {};
-        if (parsedProfile.name && !name) {
-          setName(parsedProfile.name);
-        }
-        if (parsedProfile.phone && !phone) {
-          setPhone(parsedProfile.phone);
-        }
-        if (parsedProfile.experience_years && expYears === 0) {
-          setExpYears(parsedProfile.experience_years);
-        }
+        if (parsedProfile.name && !name) setName(parsedProfile.name);
+        if (parsedProfile.phone && !phone) setPhone(parsedProfile.phone);
+        if (parsedProfile.experience_years && expYears === 0) setExpYears(parsedProfile.experience_years);
 
-        // Add extracted TECHNICAL skills to existing skills (avoid duplicates)
-        // Soft skills are kept separate for reference
-        const newSkills = Array.from(new Set([...skills, ...extractedSkills]));
-        setSkills(newSkills);
-        setError(""); // Clear any error
+        // Merge into existing form state (avoid duplicates)
+        setSkills(prev     => Array.from(new Set([...prev, ...extractedSkills])));
+        setStrengths(prev  => Array.from(new Set([...prev, ...extractedStrengths])));
+        setWeaknesses(prev => Array.from(new Set([...prev, ...extractedWeaknesses])));
+
+        setError("");
       } else {
         throw new Error(data.message || "Failed to process resume");
       }
@@ -285,67 +279,65 @@ function OnboardingPageInner() {
                     </div>
                     {skills.length > 0 && (
                       <div className="text-sm text-green-400 flex items-center gap-2">
-                        ✓ {skills.length} skills extracted
+                        ✓ {skills.length} skills · {strengths.length} strengths · {weaknesses.length} weaknesses extracted
                       </div>
                     )}
                     
                     {extractedData && (
                       <div className="mt-4 space-y-3">
-                        {/* Profile Data */}
-                        <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg text-sm text-white/70 space-y-1">
-                          <div className="font-semibold text-blue-400 mb-2">📋 Extracted Profile Data</div>
-                          {extractedData.parsed_profile?.name && (
-                            <div>Name: <span className="text-white">{extractedData.parsed_profile.name}</span></div>
-                          )}
-                          {extractedData.parsed_profile?.email && (
-                            <div>Email: <span className="text-white">{extractedData.parsed_profile.email}</span></div>
-                          )}
-                          {extractedData.parsed_profile?.experience_years && (
-                            <div>Experience: <span className="text-white">{extractedData.parsed_profile.experience_years} years</span></div>
-                          )}
-                          {extractedData.parsed_profile?.education && extractedData.parsed_profile.education.length > 0 && (
-                            <div>Education: <span className="text-white">
-                              {typeof extractedData.parsed_profile.education[0] === 'string'
-                                ? extractedData.parsed_profile.education[0]
-                                : `${extractedData.parsed_profile.education[0].degree || ''} from ${extractedData.parsed_profile.education[0].institution || ''}`
-                              }
-                            </span></div>
-                          )}
-                        </div>
-                        
-                        {/* Technical Skills Summary */}
-                        {extractedData.normalized_skills && extractedData.normalized_skills.length > 0 && (
-                          <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-sm text-white/70">
-                            <div className="font-semibold text-green-400 mb-2">⚙️ Technical Skills ({extractedData.normalized_skills.length})</div>
+                        {/* Profile */}
+                        {(extractedData.parsed_profile?.name || extractedData.parsed_profile?.experience_years) && (
+                          <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg text-sm text-white/70 space-y-1">
+                            <div className="font-semibold text-blue-400 mb-2">📋 Profile</div>
+                            {extractedData.parsed_profile?.name && (
+                              <div>Name: <span className="text-white">{extractedData.parsed_profile.name}</span></div>
+                            )}
+                            {extractedData.parsed_profile?.experience_years > 0 && (
+                              <div>Experience: <span className="text-white">{extractedData.parsed_profile.experience_years} yrs</span></div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Skills */}
+                        {extractedData.normalized_skills?.length > 0 && (
+                          <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-sm">
+                            <div className="font-semibold text-green-400 mb-2">⚙️ Skills ({extractedData.normalized_skills.length})</div>
                             <div className="flex flex-wrap gap-1.5">
-                              {extractedData.normalized_skills.slice(0, 8).map((skill: string) => (
-                                <span key={skill} className="px-2 py-0.5 bg-green-500/20 text-green-300 rounded text-xs">
-                                  {skill.charAt(0).toUpperCase() + skill.slice(1)}
-                                </span>
+                              {extractedData.normalized_skills.slice(0, 8).map((s: string) => (
+                                <span key={s} className="px-2 py-0.5 bg-green-500/20 text-green-300 rounded text-xs capitalize">{s}</span>
                               ))}
                               {extractedData.normalized_skills.length > 8 && (
-                                <span className="px-2 py-0.5 bg-green-500/10 text-green-300 rounded text-xs">
-                                  +{extractedData.normalized_skills.length - 8} more
-                                </span>
+                                <span className="px-2 py-0.5 bg-green-500/10 text-green-300 rounded text-xs">+{extractedData.normalized_skills.length - 8} more</span>
                               )}
                             </div>
                           </div>
                         )}
-                        
-                        {/* Soft Skills Summary */}
-                        {extractedData.soft_skills && extractedData.soft_skills.length > 0 && (
-                          <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg text-sm text-white/70">
-                            <div className="font-semibold text-purple-400 mb-2">💡 Soft Skills ({extractedData.soft_skills.length})</div>
+
+                        {/* Strengths */}
+                        {extractedData.strengths?.length > 0 && (
+                          <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-sm">
+                            <div className="font-semibold text-yellow-400 mb-2">⭐ Strengths ({extractedData.strengths.length})</div>
                             <div className="flex flex-wrap gap-1.5">
-                              {extractedData.soft_skills.slice(0, 6).map((skill: string) => (
-                                <span key={skill} className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded text-xs">
-                                  {skill.charAt(0).toUpperCase() + skill.slice(1)}
-                                </span>
+                              {extractedData.strengths.slice(0, 5).map((s: string) => (
+                                <span key={s} className="px-2 py-0.5 bg-yellow-500/20 text-yellow-300 rounded text-xs">{s}</span>
                               ))}
-                              {extractedData.soft_skills.length > 6 && (
-                                <span className="px-2 py-0.5 bg-purple-500/10 text-purple-300 rounded text-xs">
-                                  +{extractedData.soft_skills.length - 6} more
-                                </span>
+                              {extractedData.strengths.length > 5 && (
+                                <span className="px-2 py-0.5 bg-yellow-500/10 text-yellow-300 rounded text-xs">+{extractedData.strengths.length - 5} more</span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Weaknesses */}
+                        {extractedData.weaknesses?.length > 0 && (
+                          <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg text-sm">
+                            <div className="font-semibold text-orange-400 mb-2">⚠️ Gaps / Weaknesses ({extractedData.weaknesses.length})</div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {extractedData.weaknesses.slice(0, 5).map((s: string) => (
+                                <span key={s} className="px-2 py-0.5 bg-orange-500/20 text-orange-300 rounded text-xs">{s}</span>
+                              ))}
+                              {extractedData.weaknesses.length > 5 && (
+                                <span className="px-2 py-0.5 bg-orange-500/10 text-orange-300 rounded text-xs">+{extractedData.weaknesses.length - 5} more</span>
                               )}
                             </div>
                           </div>

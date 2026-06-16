@@ -1,3 +1,7 @@
+# Frontend — never needed in backend image
+frontend/
+
+# Python cache and virtual envs
 __pycache__
 *.py[cod]
 *.pyo
@@ -5,10 +9,30 @@ __pycache__
 .venv
 venv
 env
+
+# Secrets — injected via environment variables at runtime
 .env
 .env.*
+
+# Data files — mounted as named volumes at runtime
+data/
+
+# Dev/editor
+.vscode
+.git
+.gitignore
+
+# Docker files themselves
+docker-compose*.yml
+backend/Dockerfile
+frontend/Dockerfile
+frontend/Dockerfile.dev
+
+# Docs and images
+README.md
+images/
+*.png
+*.pdf
+
+# Logs
 *.log
-.pytest_cache
-.coverage
-data/resumes/*
-data/user_contexts/*

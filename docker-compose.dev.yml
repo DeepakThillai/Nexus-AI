@@ -1,0 +1,70 @@
+services:
+
+  # ── Backend: FastAPI with live reload ────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: nexus-backend-dev
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB=${MONGO_DB:-career_navigation}
+      - MONGO_COLL=${MONGO_COLL:-user_contexts}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - RESUME_UPLOAD_DIR=/app/data/resumes
+      - USER_CONTEXT_DIR=/app/data/user_contexts
+      - LOG_LEVEL=DEBUG
+    volumes:
+      # Mount entire project root so backend/ package is live
+      - .:/app
+      # Keep named volumes for data — don't override with host
+      - resume_data:/app/data/resumes
+      - context_data:/app/data/user_contexts
+      # Prevent host __pycache__ from leaking into container
+      - /app/backend/__pycache__
+      - /app/backend/agents/__pycache__
+      - /app/backend/database/__pycache__
+      - /app/backend/core/__pycache__
+    # --reload watches for .py file changes and restarts automatically
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ── Frontend: Next.js with hot reload ───────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: nexus-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      - NODE_ENV=development
+    volumes:
+      # Mount src so Next.js hot reload sees your changes instantly
+      - ./frontend/src:/app/src
+      # Mount config files so tailwind/next config changes apply
+      - ./frontend/tailwind.config.ts:/app/tailwind.config.ts
+      - ./frontend/next.config.js:/app/next.config.js
+      - ./frontend/postcss.config.js:/app/postcss.config.js
+      # Keep node_modules from the built image — don't override
+      - /app/node_modules
+      # Keep .next build cache inside the container
+      - /app/.next
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  resume_data:
+  context_data:
