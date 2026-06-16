@@ -9,6 +9,7 @@ import {
   HelpCircle, BookOpen,
   CheckCircle, Star, Users,
 } from "lucide-react";
+import Image from "next/image";
 import ParticleBackground from "@/components/ParticleBackground";
 
 // ── Types ─────────────────────────────────────────────────────────
@@ -104,7 +105,7 @@ const sections: Section[] = [
     title: "Getting Started",
     subtitle: "From sign-up to your first roadmap in minutes.",
     steps: [
-      { icon: Mail,          title: "Enter your email",         desc: "Go to /auth and enter your email address. No password needed — Nexus-AI recognises returning users automatically." },
+      { icon: Mail,          title: "Enter your email",         desc: "Open the app and enter your email address on the sign-in page. If you are new, an account is created and a password is sent to your email. If you already have an account, just enter your password." },
       { icon: Users,         title: "Complete onboarding",      desc: "Fill in your name, years of experience, skills, strengths, and weaknesses across 3 short steps. You can also upload a PDF or image resume to auto-fill your skills." },
       { icon: Target,        title: "Set your target role",     desc: "Enter the specific job title you are aiming for — e.g. 'Full Stack Developer', 'Data Scientist', 'DevOps Engineer'. Be specific for best results." },
       { icon: ClipboardList, title: "Take the readiness assessment", desc: "Answer 10 AI-generated questions about your target role. Take your time — detailed answers produce a more accurate score. You can go back and edit any answer before submitting." },
@@ -126,7 +127,7 @@ const sections: Section[] = [
     ],
     faqs: [
       { q: "Why is my confidence score low?", a: "Your confidence starts at your readiness score. If you scored low on assessment or failed several actions, the score reflects that. Focus on completing roadmap actions and re-assessing to build it back up." },
-      { q: "Can I retake the readiness assessment?", a: "Yes — go to /readiness?uid=YOUR_ID at any time. Each retake generates a fresh set of AI questions. Your previous score will be overwritten." },
+      { q: "Can I retake the readiness assessment?", a: "Yes — use the Readiness link from your dashboard at any time. Each retake generates a fresh set of AI questions. Your previous score will be overwritten." },
     ],
   },
   {
@@ -209,7 +210,7 @@ const sections: Section[] = [
     ],
     tips: [
       "Rerouting is not failure — it is a smart recalibration. Many successful careers take a lateral step before going up.",
-      "You can manually visit /reroute at any time to check your status, even without a low confidence score.",
+      "You can manually open the Reroute page from your dashboard at any time to check your status, even without a low confidence score.",
     ],
     faqs: [
       { q: "Does switching roles delete my previous roadmap?", a: "No. Your original roadmap and progress data are preserved in the database. When you return to your previous role, the original roadmap is restored." },
@@ -291,8 +292,8 @@ export default function HelpPage() {
         <div className="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center">
-                <Brain size={15} className="text-white" />
+              <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+                <Image src="/nexus_logo.png" alt="Nexus-AI" width={32} height={32} className="object-contain" />
               </div>
               <span className="font-bold">Nexus-AI</span>
             </Link>

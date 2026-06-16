@@ -18,6 +18,11 @@ services:
       - RESUME_UPLOAD_DIR=/app/data/resumes
       - USER_CONTEXT_DIR=/app/data/user_contexts
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-}
     volumes:
       - resume_data:/app/data/resumes
       - context_data:/app/data/user_contexts

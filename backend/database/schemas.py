@@ -270,3 +270,28 @@ class FeedbackResponse(BaseModel):
 class HandsOnChatResponse(BaseModel):
     reply: str
     conversation_history: List[Dict[str, str]]
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  AUTH SCHEMAS
+# ═══════════════════════════════════════════════════════════════════
+
+class AuthLoginRequest(BaseModel):
+    """POST /api/auth/login — send password to email"""
+    email: str
+
+class AuthVerifyRequest(BaseModel):
+    """POST /api/auth/verify — check password"""
+    email: str
+    password: str
+
+class AuthForgotRequest(BaseModel):
+    """POST /api/auth/forgot-password — send new password"""
+    email: str
+
+class AuthResponse(BaseModel):
+    success: bool
+    message: str
+    user_id: Optional[str] = None
+    exists: Optional[bool] = None
+    is_new_user: Optional[bool] = None

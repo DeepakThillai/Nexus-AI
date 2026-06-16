@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Brain, Github, Linkedin, Mail, Star, Code2, Heart, ArrowLeft } from "lucide-react";
+import Image from "next/image";
 import ParticleBackground from "@/components/ParticleBackground";
 
 const team = [
@@ -55,8 +56,8 @@ export default function CreditsPage() {
       <nav className="glass border-b border-white/[0.06] sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-6 py-3.5 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center">
-              <Brain size={15} className="text-white" />
+            <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+              <Image src="/nexus_logo.png" alt="Nexus-AI" width={32} height={32} className="object-contain" />
             </div>
             <span className="font-bold">Nexus-AI</span>
           </Link>

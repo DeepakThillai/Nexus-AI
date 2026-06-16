@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Brain, Target, TrendingUp, Zap, BarChart3, Map, HelpCircle } from "lucide-react";
 import HeroParticleBackground from "@/components/HeroParticleBackground";
 
@@ -33,8 +34,8 @@ export default function LandingPage() {
       <nav className="fixed top-0 w-full z-50 glass border-b border-white/[0.06] backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center">
-              <Brain size={16} className="text-white" />
+            <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+              <Image src="/nexus_logo.png" alt="Nexus-AI" width={32} height={32} className="object-contain" />
             </div>
             <span className="font-bold text-lg tracking-tight">Nexus-AI</span>
           </div>

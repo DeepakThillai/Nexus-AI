@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Brain, TrendingUp, Target, Calendar, Map, BarChart3, MessageSquare, RefreshCw, Loader2, AlertTriangle, HelpCircle, Users } from "lucide-react";
+import Image from "next/image";
 import { getDashboard } from "@/lib/api";
 import Link from "next/link";
 import { useStore } from "@/store/useStore";
@@ -87,8 +88,8 @@ function DashboardPageInner() {
       <nav className="glass border-b border-white/[0.06] sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center">
-              <Brain size={14} className="text-white" />
+            <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+              <Image src="/nexus_logo.png" alt="Nexus-AI" width={32} height={32} className="object-contain" />
             </div>
             <span className="font-bold">Nexus-AI</span>
             <span className="text-white/20 text-sm hidden md:block">· {career_state?.current_target_role || profile?.target_role}</span>

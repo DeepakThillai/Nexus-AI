@@ -15,6 +15,7 @@ COPY next.config.js ./
 COPY tailwind.config.ts ./
 COPY postcss.config.js ./
 COPY next-env.d.ts ./
+COPY public/ ./public/
 
 EXPOSE 3000
 

@@ -47,6 +47,7 @@ Nexus-AI deploys specialised AI agents to assess your career readiness, generate
 | Backend | FastAPI, Python 3.10+, Uvicorn |
 | AI | Groq API (LLaMA-class models) |
 | Database | MongoDB Atlas (cloud, free tier works) |
+| Auth | bcrypt password hashing, SMTP email delivery |
 | Resume parsing | PyMuPDF, Pillow, pytesseract |
 
 ---
@@ -55,7 +56,7 @@ Nexus-AI deploys specialised AI agents to assess your career readiness, generate
 
 ```
 Nexus-AI/
-├── .env.example                         # Root env template for Docker
+├── .env.example                         # Root env template
 ├── docker-compose.yml                   # Production containers
 ├── docker-compose.dev.yml               # Development containers (live reload)
 ├── backend/
@@ -65,19 +66,20 @@ Nexus-AI/
 │   ├── agents/
 │   │   ├── agentic_career_navigator.py  # All 6 agent classes
 │   │   ├── orchestrator_wrapper.py      # HTTP ↔ agent translation layer
-│   │   └── hands_on_agent.py            # Standalone CLI mentor
+│   │   └── hands_on_agent.py
 │   ├── core/
+│   │   ├── auth.py                      # Password hashing + email sending
 │   │   └── user_context.py
 │   └── database/
 │       ├── db.py                        # MongoDB Atlas singleton
 │       └── schemas.py                   # Pydantic v2 models
 ├── frontend/
 │   ├── Dockerfile                       # Production image
-│   ├── Dockerfile.dev                   # Dev image (next dev)
+│   ├── Dockerfile.dev                   # Dev image (next dev + hot reload)
 │   └── src/
 │       ├── app/
 │       │   ├── page.tsx                 # Landing page
-│       │   ├── auth/                    # Email-based auth
+│       │   ├── auth/                    # Email + password auth
 │       │   ├── onboarding/              # Profile setup + resume upload
 │       │   ├── readiness/               # 10-question AI assessment
 │       │   ├── result/                  # Score gauge + adjacent roles
@@ -87,7 +89,7 @@ Nexus-AI/
 │       │   ├── hands-on/                # AI mentor chat
 │       │   ├── reroute/                 # Confidence-based path adjustment
 │       │   ├── feedback/                # Full progress analytics
-│       │   ├── help/                    # Help center (7 topics)
+│       │   ├── help/                    # Help center
 │       │   └── credits/                 # Team & contact
 │       ├── components/
 │       │   ├── ParticleBackground.tsx
@@ -96,174 +98,145 @@ Nexus-AI/
 │       ├── lib/api.ts                   # All backend API calls (Axios)
 │       └── store/useStore.ts            # Zustand global state
 └── data/
-    ├── resumes/                         # Uploaded resume files
-    └── user_contexts/                   # JSON context snapshots
+    ├── resumes/
+    └── user_contexts/
 ```
 
 ---
 
-## Docker Setup (recommended)
+## Prerequisites
 
-### Prerequisites
 - [Docker Desktop](https://www.docker.com/products/docker-desktop) installed and running
-- MongoDB Atlas connection string (free tier — see MongoDB section below)
-- Groq API key from https://console.groq.com
+- [MongoDB Atlas](https://cloud.mongodb.com) account (free M0 tier)
+- [Groq API key](https://console.groq.com)
+- Gmail account with an [App Password](https://myaccount.google.com/apppasswords) for email delivery
 
-### 1 — Create your `.env`
+---
+
+## Setup
+
+### 1 — MongoDB Atlas
+
+1. Sign up at https://cloud.mongodb.com
+2. Create a free **M0** cluster
+3. **Database Access** → Add user → Password auth → *Read and write to any database*
+4. **Network Access** → Allow Access from Anywhere (`0.0.0.0/0`)
+5. **Database** → Connect → Drivers → Python 4.7+ → copy the connection string
+
+### 2 — Environment variables
 
 ```bash
 cp .env.example .env
 ```
 
 Edit `.env`:
+
 ```env
+# Groq
 GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/
+
+# MongoDB Atlas
+MONGO_URI=mongodb+srv://user:password@cluster0.xxxxx.mongodb.net/
 MONGO_DB=career_navigation
 MONGO_COLL=user_contexts
-FRONTEND_URL=http://localhost:3000
-NEXT_PUBLIC_API_URL=http://localhost:8000
+
+# CORS
+FRONTEND_URL=https://yourdomain.com
+
+# Backend URL as seen by the browser
+NEXT_PUBLIC_API_URL=https://api.yourdomain.com
+
+# Email (Gmail App Password)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=youraddress@gmail.com
+SMTP_PASSWORD=xxxx xxxx xxxx xxxx
+SMTP_FROM=youraddress@gmail.com
 ```
 
-### 2 — Run
+### 3 — Run
 
-**Production** — code baked into image, use for deployment:
+**Production:**
 ```bash
 docker compose up --build
 ```
 
-**Development** — live reload, no rebuild needed on code changes:
+**Development (live reload — no rebuild on code changes):**
 ```bash
 docker compose -f docker-compose.dev.yml up --build
 ```
 
-| Service | URL |
-|---|---|
-| Frontend | http://localhost:3000 |
-| Backend API | http://localhost:8000 |
-| Health check | http://localhost:8000/health |
+---
 
-### After code changes
+## After Code Changes
 
 | Mode | What to do |
 |---|---|
 | Production | `docker compose up --build` |
 | Development | Just save the file — reloads automatically |
 
-### Other commands
-
 ```bash
-# Run production in background
-docker compose up --build -d
-
-# Stream logs
-docker compose logs -f
-
-# Stop
+# Stop production
 docker compose down
 
-# Stop and wipe data volumes
-docker compose down -v
-
-# Stop dev containers
+# Stop development
 docker compose -f docker-compose.dev.yml down
+
+# Wipe volumes (clears uploaded data)
+docker compose down -v
 ```
 
 ---
 
-## Manual Setup (without Docker)
+## Authentication Flow
 
-### MongoDB Atlas
-
-1. Go to https://cloud.mongodb.com → sign up / log in
-2. **Build a Database** → **M0 Free** → Create
-3. **Database Access** → Add user → Password auth → Role: *Read and write to any database*
-4. **Network Access** → Add IP → **Allow Access from Anywhere** (`0.0.0.0/0`)
-5. **Database** → Connect → Drivers → Python 3.6+ → copy connection string
-
-### Backend
-
-```bash
-# From the project root
-pip install -r backend/requirements.txt
-
-# Always run from project root — not from inside backend/
-uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-Create `backend/.env`:
-```env
-GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/
-MONGO_DB=career_navigation
-MONGO_COLL=user_contexts
-FRONTEND_URL=http://localhost:3000
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open http://localhost:3000
+1. User enters email → backend checks if account exists
+   - **New email** → account created, random password generated + emailed
+   - **Existing email** → prompts for password
+2. User enters password → verified against bcrypt hash in MongoDB
+3. Correct password → redirected to onboarding (new) or dashboard (existing)
+4. **Forgot password** → new password generated and emailed, hash updated
 
 ---
 
 ## User Flow
 
 ```
-/ (Landing)
-  └─► /auth
-        ├─► /onboarding    (new user)
-        │     Step 1: Profile (name, email, phone, experience)
-        │     Step 2: Skills — manual entry OR upload resume (PDF/PNG/JPG)
-        │             Resume auto-extracts skills, strengths, weaknesses
+Landing (/)
+  └─► Sign In (/auth)
+        ├─► Onboarding    (new user)
+        │     Step 1: Profile
+        │     Step 2: Skills — manual entry OR resume upload (PDF/PNG/JPG)
+        │             Auto-extracts skills, strengths, weaknesses
         │     Step 3: Target Role
-        │         └─► /readiness  → 10 AI questions, one per screen
-        │                 └─► /result → Score gauge + adjacent roles
-        │                       └─► /dashboard
-        └─► /dashboard     (existing user)
-              ├─► /roadmap     5-month accordion, 4 actions/month
-              │                 "Start Assessment" → 10-question modal
-              │                 Score saved → confidence ±1
-              ├─► /market      Demand score, salary, hiring companies
-              ├─► /hands-on    AI mentor chat (task-based learning)
-              ├─► /reroute     Confidence-based path adjustment
-              ├─► /feedback    Full analytics report
-              ├─► /help        Help center
-              └─► /credits     Team info & contact
+        │         └─► Readiness Assessment → 10 AI questions
+        │                 └─► Result → Score + adjacent roles
+        │                       └─► Dashboard
+        └─► Dashboard     (existing user)
+              ├─► Roadmap      5 months × 4 actions, assessment modal
+              ├─► Market       Demand score, salary, companies
+              ├─► Hands-On     AI mentor chat
+              ├─► Reroute      Confidence-based path adjustment
+              ├─► Feedback     Full analytics
+              ├─► Help         Help center
+              └─► Credits      Team & contact
 ```
 
 ---
 
 ## AI Agents
 
-| Agent | Triggered by | What it does |
-|---|---|---|
-| `ReadinessAssessmentAgent` | `/api/readiness/start` + `/evaluate` | Generates 10 questions, scores answers fairly |
-| `MarketIntelligenceAgent` | Onboarding + role switch | Demand score, salary range, competition, adjacent roles |
-| `RoadmapAgent` | After readiness evaluation | Builds 5-month × 4-action personalised roadmap |
-| `ActionAssessmentAgent` | Per roadmap action | Generates 10 questions, evaluates answers, updates confidence |
-| `ReroutingAgent` | After every action + `/api/reroute` | Checks confidence threshold, suggests role adjustments |
-| `FeedbackAgent` | `/api/feedback` | Generates full progress report with insights |
+| Agent | What it does |
+|---|---|
+| `ReadinessAssessmentAgent` | Generates 10 questions, scores answers fairly |
+| `MarketIntelligenceAgent` | Demand score, salary range, competition, adjacent roles |
+| `RoadmapAgent` | Builds 5-month × 4-action personalised roadmap |
+| `ActionAssessmentAgent` | Generates 10 questions per action, evaluates answers, updates confidence |
+| `ReroutingAgent` | Checks confidence threshold, suggests role adjustments |
+| `FeedbackAgent` | Full progress report with insights and adjustments |
 
-**Confidence scoring:** initialises at readiness score · `+1` per passed action · `-1` per failed · clamped `[0, 100]`  
-**Reroute trigger:** confidence `< 40` → suggest safer roles · confidence `≥ 80` → allow return to previous role  
-**Evaluation:** assessors give benefit of the doubt — partial answers and genuine attempts are scored positively
-
----
-
-## Resume Upload
-
-On the Skills step of onboarding, users can upload a PDF or image resume instead of entering skills manually.
-
-- **Extraction:** PyMuPDF extracts text from PDF; pytesseract handles image-based resumes
-- **AI parsing:** Single Groq call returns `skills`, `strengths`, `weaknesses`, `soft_skills`, `name`, `phone`, `experience_years`
-- **Auto-fill:** All three fields (skills, strengths, weaknesses) are populated automatically — same as manual entry
-- **Editable:** User can remove or add tags before proceeding
+**Confidence:** starts at readiness score · `+1` per passed action · `-1` per failed · clamped `[0, 100]`  
+**Reroute trigger:** confidence `< 40` → suggest safer roles · `≥ 80` → allow return to previous role
 
 ---
 
@@ -271,20 +244,22 @@ On the Skills step of onboarding, users can upload a PDF or image resume instead
 
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | `/api/onboard` | Create/update user + generate market intel |
+| POST | `/api/auth/login` | Check email, send password if new user |
+| POST | `/api/auth/verify` | Verify password, return user_id |
+| POST | `/api/auth/forgot-password` | Generate + email new password |
+| POST | `/api/onboard` | Create/update user profile + market intel |
 | POST | `/api/readiness/start` | Generate 10 readiness questions |
 | POST | `/api/readiness/evaluate` | Score answers + generate roadmap |
 | GET | `/api/dashboard/{uid}` | Aggregate all user state |
 | GET | `/api/roadmap/{uid}` | Return active roadmap |
-| POST | `/api/roadmap/regenerate` | Regenerate roadmap for role |
+| POST | `/api/roadmap/regenerate` | Regenerate roadmap |
 | POST | `/api/action/questions` | Generate 10 questions for an action |
 | POST | `/api/action/assess` | Score answers + update confidence |
 | GET | `/api/market/{uid}` | Return market analysis |
 | POST | `/api/reroute` | Analyse rerouting + optional role switch |
 | POST | `/api/feedback` | Generate feedback report |
 | POST | `/api/hands-on/chat` | Stateless AI mentor chat |
-| POST | `/api/resume/upload` | Upload PDF/image resume → extract skills |
-| POST | `/api/resume/extract-skills` | Extract skills from raw text |
+| POST | `/api/resume/upload` | Upload PDF/image resume |
 | GET | `/health` | Health check |
 
 ---
@@ -292,8 +267,8 @@ On the Skills step of onboarding, users can upload a PDF or image resume instead
 ## Architecture Notes
 
 - All LLM calls are **server-side only** — the frontend never calls Groq directly
+- Passwords are hashed with **bcrypt** — plain text is never stored
 - Q&A pairs are **never persisted** — only scores and summaries go to MongoDB
-- Session question cache is in-memory; auto-regenerated from action title if the server restarts mid-session
 - `orchestrator_wrapper.py` is a pure HTTP ↔ agent translation layer — no business logic
 - `next.config.js` uses `output: "standalone"` for minimal production Docker images
 
@@ -301,4 +276,4 @@ On the Skills step of onboarding, users can upload a PDF or image resume instead
 
 ## Credits
 
-Built by the Nexus-AI team. Visit `/credits` in the app or contact **deepakthillaikannu@gmail.com**.
+Built by the Nexus-AI team — [deepakthillaikannu@gmail.com](mailto:deepakthillaikannu@gmail.com)

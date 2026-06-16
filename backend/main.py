@@ -38,8 +38,10 @@ from backend.database.schemas import (
     FeedbackRequest, FeedbackResponse,
     HandsOnChatRequest, HandsOnChatResponse,
     DashboardResponse,
+    AuthLoginRequest, AuthVerifyRequest, AuthForgotRequest, AuthResponse,
 )
 from backend.agents import orchestrator_wrapper as ow
+from backend.core.auth import generate_password, hash_password, verify_password, send_password_email
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -86,6 +88,119 @@ async def health():
         "mongo": db.available,
         "groq_key_set": bool(os.getenv("GROQ_API_KEY")),
     }
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  AUTH
+# ═══════════════════════════════════════════════════════════════════
+
+@app.post("/api/auth/login", response_model=AuthResponse)
+async def auth_login(body: AuthLoginRequest):
+    """
+    Step 1 of login.
+    - Existing user  → return {success, exists=True}  (frontend asks for password)
+    - New user       → generate password, email it, store hash → {success, is_new_user=True}
+    """
+    try:
+        email = body.email.lower().strip()
+        existing = db.find_by_email(email)
+
+        if existing:
+            return AuthResponse(
+                success=True,
+                message="Account found. Please enter your password.",
+                user_id=existing["user_id"],
+                exists=True,
+                is_new_user=False,
+            )
+
+        # New user — generate & email password, store hash
+        import time
+        user_id  = f"user_{int(time.time() * 1000)}"
+        password = generate_password()
+        pw_hash  = hash_password(password)
+
+        # Create minimal user document (profile filled in during onboarding)
+        from backend.agents.orchestrator_wrapper import _build_user_document, _now
+        user_doc = _build_user_document(user_id, email, "", {})
+        user_doc["auth"] = {"password_hash": pw_hash}
+        db.upsert_user(user_id, user_doc)
+
+        email_sent = send_password_email(email, password, is_new_user=True)
+
+        return AuthResponse(
+            success=True,
+            message="Account created. Check your email for your password." if email_sent
+                    else "Account created. Email delivery failed — contact support.",
+            user_id=user_id,
+            exists=False,
+            is_new_user=True,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/auth/verify", response_model=AuthResponse)
+async def auth_verify(body: AuthVerifyRequest):
+    """
+    Step 2 of login — verify the password.
+    Returns user_id on success.
+    """
+    try:
+        email = body.email.lower().strip()
+        user  = db.find_by_email(email)
+
+        if not user:
+            raise HTTPException(status_code=404, detail="Account not found.")
+
+        pw_hash = user.get("auth", {}).get("password_hash", "")
+        if not pw_hash:
+            raise HTTPException(status_code=400, detail="No password set. Use Forgot Password.")
+
+        if not verify_password(body.password, pw_hash):
+            raise HTTPException(status_code=401, detail="Incorrect password.")
+
+        is_onboarded = bool(user.get("profile", {}).get("target_role", ""))
+        return AuthResponse(
+            success=True,
+            message="Login successful.",
+            user_id=user["user_id"],
+            exists=True,
+            is_new_user=not is_onboarded,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/auth/forgot-password", response_model=AuthResponse)
+async def auth_forgot(body: AuthForgotRequest):
+    """
+    Generate a new password and email it. Updates hash in DB.
+    """
+    try:
+        email = body.email.lower().strip()
+        user  = db.find_by_email(email)
+
+        if not user:
+            # Don't reveal whether email exists
+            return AuthResponse(
+                success=True,
+                message="If that email is registered, a new password has been sent.",
+            )
+
+        password = generate_password()
+        pw_hash  = hash_password(password)
+        db.patch_user(user["user_id"], {"auth.password_hash": pw_hash})
+        send_password_email(email, password, is_new_user=False)
+
+        return AuthResponse(
+            success=True,
+            message="A new password has been sent to your email.",
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ═══════════════════════════════════════════════════════════════════

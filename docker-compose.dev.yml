@@ -53,6 +53,8 @@ services:
     volumes:
       # Mount src so Next.js hot reload sees your changes instantly
       - ./frontend/src:/app/src
+      # Mount public so logo and static assets are live
+      - ./frontend/public:/app/public
       # Mount config files so tailwind/next config changes apply
       - ./frontend/tailwind.config.ts:/app/tailwind.config.ts
       - ./frontend/next.config.js:/app/next.config.js

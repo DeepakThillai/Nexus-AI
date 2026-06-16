@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Brain, ChevronRight, Loader2, CheckCircle } from "lucide-react";
+import Image from "next/image";
 import { startReadiness, evaluateReadiness } from "@/lib/api";
 import { useStore } from "@/store/useStore";
 import ParticleBackground from "@/components/ParticleBackground";
@@ -90,8 +91,8 @@ function ReadinessPageInner() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center mx-auto mb-4 shadow-glow">
-            <Brain size={24} className="text-white" />
+          <div className="flex items-center justify-center mx-auto mb-4">
+            <Image src="/nexus_logo.png" alt="Nexus-AI" width={64} height={64} className="object-contain" />
           </div>
           <h1 className="text-3xl font-black mb-1">Readiness Assessment</h1>
           <p className="text-white/40">Agent-powered evaluation • 10 questions • ~5 minutes</p>
