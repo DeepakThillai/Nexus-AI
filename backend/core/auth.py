@@ -66,7 +66,7 @@ def send_password_email(to_email: str, password: str, is_new_user: bool) -> bool
 """
 
     payload = json.dumps({
-        "sender":      {"name": "Nexus-AI", "email": "af1865001@smtp-brevo.com"},
+        "sender":      {"name": "Nexus-AI", "email": "diiihpak@gmail.com"},
         "to":          [{"email": to_email}],
         "subject":     subject,
         "htmlContent": body_html,
