@@ -2,10 +2,10 @@
 import { useEffect, useState } from "react";
 import { Suspense } from "react";
 import { motion } from "framer-motion";
-import { useSearchParams } from "next/navigation";
-import { TrendingUp, AlertCircle, Lightbulb, Target, Calendar, Loader2, ArrowLeft, RefreshCw, Smile } from "lucide-react";
+import { useSearchParams } from "next/navigation";import { TrendingUp, AlertCircle, Lightbulb, Target, Calendar, Loader2, ArrowLeft, RefreshCw, Smile } from "lucide-react";
 import { generateFeedback } from "@/lib/api";
 import { useStore } from "@/store/useStore";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import ParticleBackground from "@/components/ParticleBackground";
 
 function InsightCard({ insight }: { insight: any }) {
@@ -37,9 +37,7 @@ export default function FeedbackPage() {
 }
 
 function FeedbackPageInner() {
-  const params   = useSearchParams();
-  const storeUid = useStore((s) => s.userId);
-  const userId   = params.get("uid") || storeUid || "";
+  const userId = useAuthGuard();
 
   const [feedback, setFeedback] = useState<any>(null);
   const [loading,  setLoading]  = useState(false);

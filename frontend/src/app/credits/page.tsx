@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { Brain, Github, Linkedin, Mail, Star, Code2, Heart, ArrowLeft } from "lucide-react";
 import Image from "next/image";
+import { useStore } from "@/store/useStore";
 import ParticleBackground from "@/components/ParticleBackground";
 
 const team = [
@@ -46,6 +47,9 @@ const stack = [
 ];
 
 export default function CreditsPage() {
+  const userId = useStore((s) => s.userId);
+  const appLink = userId ? `/dashboard?uid=${userId}` : "/auth";
+  const appLabel = userId ? "Dashboard →" : "Get Started";
   return (
     <div className="min-h-screen bg-[#0F1117] bg-grid">
       <ParticleBackground />
@@ -63,7 +67,7 @@ export default function CreditsPage() {
           </Link>
           <div className="flex items-center gap-2">
             <Link href="/help" className="btn-ghost text-sm py-2 px-4">Help</Link>
-            <Link href="/auth" className="btn-primary text-sm py-2 px-4">Get Started</Link>
+            <Link href={appLink} className="btn-primary text-sm py-2 px-4">{appLabel}</Link>
           </div>
         </div>
       </nav>

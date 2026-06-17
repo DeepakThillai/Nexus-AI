@@ -10,6 +10,7 @@ import {
   CheckCircle, Star, Users,
 } from "lucide-react";
 import Image from "next/image";
+import { useStore } from "@/store/useStore";
 import ParticleBackground from "@/components/ParticleBackground";
 
 // ── Types ─────────────────────────────────────────────────────────
@@ -282,6 +283,9 @@ function SideItem({ s, active, onClick }: { s: Section; active: boolean; onClick
 export default function HelpPage() {
   const [active, setActive] = useState("getting-started");
   const section = sections.find((s) => s.id === active)!;
+  const userId  = useStore((s) => s.userId);
+  const appLink = userId ? `/dashboard?uid=${userId}` : "/auth";
+  const appLabel = userId ? "Back to Dashboard →" : "Back to App →";
 
   return (
     <div className="min-h-screen bg-[#0F1117] bg-grid">
@@ -302,8 +306,8 @@ export default function HelpPage() {
               <HelpCircle size={14} /> Help Center
             </span>
           </div>
-          <Link href="/auth" className="btn-ghost text-sm py-2 px-4">
-            Back to App →
+          <Link href={appLink} className="btn-ghost text-sm py-2 px-4">
+            {appLabel}
           </Link>
         </div>
       </nav>
@@ -441,8 +445,8 @@ export default function HelpPage() {
                     Next Topic →
                   </button>
                 ) : (
-                  <Link href="/auth" className="btn-primary flex items-center gap-2 text-sm">
-                    Start Using Nexus-AI →
+                  <Link href={appLink} className="btn-primary flex items-center gap-2 text-sm">
+                    {userId ? "Go to Dashboard →" : "Start Using Nexus-AI →"}
                   </Link>
                 )}
               </div>

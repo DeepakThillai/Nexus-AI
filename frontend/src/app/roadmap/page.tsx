@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { getRoadmap, getActionQuestions, assessAction } from "@/lib/api";
 import { useStore } from "@/store/useStore";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import ParticleBackground from "@/components/ParticleBackground";
 import AIThinkingOverlay from "@/components/AIThinkingOverlay";
 
@@ -417,9 +418,7 @@ export default function RoadmapPage() {
 }
 
 function RoadmapPageInner() {
-  const params   = useSearchParams();
-  const storeUid = useStore((s) => s.userId);
-  const userId   = params.get("uid") || storeUid || "";
+  const userId = useAuthGuard();
 
   const [roadmap,    setRoadmap]    = useState<any>(null);
   const [loading,    setLoading]    = useState(true);

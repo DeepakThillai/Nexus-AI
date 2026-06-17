@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { RefreshCw, ArrowLeft, Loader2, CheckCircle, AlertTriangle, ChevronRight } from "lucide-react";
 import { reroute } from "@/lib/api";
 import { useStore } from "@/store/useStore";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import ParticleBackground from "@/components/ParticleBackground";
 import AIThinkingOverlay from "@/components/AIThinkingOverlay";
 
@@ -38,11 +39,9 @@ export default function ReroutePage() {
 }
 
 function ReroutePageInner() {
-  const router   = useRouter();
-  const params   = useSearchParams();
-  const storeUid = useStore((s) => s.userId);
-  const setRole  = useStore((s) => s.setRole);
-  const userId   = params.get("uid") || storeUid || "";
+  const router  = useRouter();
+  const setRole = useStore((s) => s.setRole);
+  const userId  = useAuthGuard();
 
   const [analysis, setAnalysis] = useState<any>(null);
   const [loading,  setLoading]  = useState(true);
@@ -165,7 +164,7 @@ function ReroutePageInner() {
                 <CheckCircle size={32} className="text-emerald-400 mx-auto mb-3" />
                 <p className="font-semibold text-emerald-400 mb-1">You're on track!</p>
                 <p className="text-white/40 text-sm">Keep working through your roadmap. No rerouting needed at this time.</p>
-                <button onClick={() => router.push(`/roadmap?uid=${userId}`)} className="btn-primary mt-4">
+                <button onClick={() => router.push("/roadmap")} className="btn-primary mt-4">
                   Continue Roadmap →
                 </button>
               </div>

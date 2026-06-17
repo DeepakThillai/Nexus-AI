@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { TrendingUp, TrendingDown, Minus, Building2, Loader2, ArrowLeft, Zap } from "lucide-react";
 import { getMarket } from "@/lib/api";
 import { useStore } from "@/store/useStore";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import ParticleBackground from "@/components/ParticleBackground";
 import AIThinkingOverlay from "@/components/AIThinkingOverlay";
 
@@ -35,9 +36,7 @@ export default function MarketPage() {
 }
 
 function MarketPageInner() {
-  const params   = useSearchParams();
-  const storeUid = useStore((s) => s.userId);
-  const userId   = params.get("uid") || storeUid || "";
+  const userId = useAuthGuard();
 
   const [market,  setMarket]  = useState<any>(null);
   const [loading, setLoading] = useState(true);

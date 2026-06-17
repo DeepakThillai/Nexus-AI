@@ -66,11 +66,9 @@ export default function AuthPage() {
       setUser(d.user_id, "");
 
       if (d.is_new_user) {
-        // Newly registered, no profile yet → onboarding
         router.push(`/onboarding?uid=${d.user_id}&email=${encodeURIComponent(email.toLowerCase().trim())}`);
       } else {
-        // Existing user with profile → dashboard
-        router.push(`/dashboard?uid=${d.user_id}`);
+        router.push(`/dashboard`);
       }
     } catch (err: any) {
       setError(err.message || "Incorrect password");

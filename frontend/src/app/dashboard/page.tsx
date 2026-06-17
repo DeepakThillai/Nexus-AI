@@ -2,13 +2,14 @@
 import { useEffect, useState } from "react";
 import { Suspense } from "react";
 import { motion } from "framer-motion";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Brain, TrendingUp, Target, Calendar, Map, BarChart3, MessageSquare, RefreshCw, Loader2, AlertTriangle, HelpCircle, Users } from "lucide-react";
 import Image from "next/image";
 import { getDashboard } from "@/lib/api";
 import Link from "next/link";
 import { useStore } from "@/store/useStore";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import ParticleBackground from "@/components/ParticleBackground";
 
 function StatCard({ title, value, subtitle, icon: Icon, color, glow }: any) {
@@ -41,17 +42,14 @@ export default function DashboardPage() {
 }
 
 function DashboardPageInner() {
-  const router   = useRouter();
-  const params   = useSearchParams();
-  const storeUid = useStore((s) => s.userId);
-  const userId   = params.get("uid") || storeUid || "";
-
+  const router  = useRouter();
+  const userId  = useAuthGuard();
   const [data,    setData]    = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refresh, setRefresh] = useState(0);
 
   useEffect(() => {
-    if (!userId) { router.push("/auth"); return; }
+    if (!userId) return;
     setLoading(true);
     getDashboard(userId)
       .then(setData)
@@ -70,13 +68,13 @@ function DashboardPageInner() {
   const { profile, confidence_score, readiness, progress, roadmap_summary, reroute_state, career_state, weekly_scores } = data;
 
   const navLinks = [
-    { href: `/roadmap?uid=${userId}`,    icon: Map,          label: "Roadmap" },
-    { href: `/market?uid=${userId}`,     icon: BarChart3,    label: "Market" },
-    { href: `/hands-on?uid=${userId}`,   icon: MessageSquare,label: "Hands-On" },
-    { href: `/feedback?uid=${userId}`,   icon: TrendingUp,   label: "Feedback" },
-    { href: `/reroute?uid=${userId}`,    icon: RefreshCw,    label: "Reroute" },
-    { href: `/help`,                     icon: HelpCircle,   label: "Help" },
-    { href: `/credits`,                  icon: Users,        label: "Credits" },
+    { href: `/roadmap`,   icon: Map,          label: "Roadmap" },
+    { href: `/market`,    icon: BarChart3,    label: "Market" },
+    { href: `/hands-on`,  icon: MessageSquare,label: "Hands-On" },
+    { href: `/feedback`,  icon: TrendingUp,   label: "Feedback" },
+    { href: `/reroute`,   icon: RefreshCw,    label: "Reroute" },
+    { href: `/help`,      icon: HelpCircle,   label: "Help" },
+    { href: `/credits`,   icon: Users,        label: "Credits" },
   ];
 
   return (
@@ -131,7 +129,7 @@ function DashboardPageInner() {
                 <p className="text-white/40 text-xs">Consider reviewing rerouting options</p>
               </div>
             </div>
-            <Link href={`/reroute?uid=${userId}`} className="btn-ghost text-sm py-2 px-4 border-orange-500/30">
+            <Link href="/reroute" className="btn-ghost text-sm py-2 px-4 border-orange-500/30">
               View Options →
             </Link>
           </motion.div>

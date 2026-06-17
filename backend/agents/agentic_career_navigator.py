@@ -651,8 +651,9 @@ class ReadinessAssessmentAgent:
         system = (
             "You are a senior career evaluation AI. "
             "Evaluate the candidate's readiness based on their Q&A responses. "
-            "Be fair and give benefit of the doubt — partial answers and genuine attempts "
-            "should be scored positively. "
+            "Be fair and lenient — reward effort, partial knowledge, and genuine attempts. "
+            "A candidate showing basic awareness should score at least 45-55. "
+            "Reserve scores below 35 only for completely blank or irrelevant answers. "
             "Return ONLY valid JSON matching the exact schema provided."
         )
         qa_text = "\n".join(
@@ -920,7 +921,9 @@ class ActionAssessmentAgent:
         system = (
             "You are a fair career skills evaluator. "
             "Evaluate the candidate's understanding of the given action based on their answers. "
-            "Give benefit of the doubt — partial answers and genuine attempts should be scored positively. "
+            "Be lenient — reward effort, partial knowledge, and genuine attempts. "
+            "A candidate showing basic awareness should score at least 45-55. "
+            "Reserve scores below 35 only for completely blank or irrelevant answers. "
             "Return ONLY valid JSON."
         )
         qa_text = "\n".join(f"Q: {p['question']}\nA: {p['answer']}" for p in qa_pairs)

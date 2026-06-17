@@ -7,6 +7,7 @@ import { Brain, ChevronRight, Loader2, CheckCircle } from "lucide-react";
 import Image from "next/image";
 import { startReadiness, evaluateReadiness } from "@/lib/api";
 import { useStore } from "@/store/useStore";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import ParticleBackground from "@/components/ParticleBackground";
 
 export default function ReadinessPage() {
@@ -14,9 +15,8 @@ export default function ReadinessPage() {
 }
 
 function ReadinessPageInner() {
-  const router     = useRouter();
-  const params     = useSearchParams();
-  const userId     = params.get("uid") || useStore.getState().userId || "";
+  const router         = useRouter();
+  const userId         = useAuthGuard();
   const setReadiness   = useStore((s) => s.setReadiness);
   const setConfidence  = useStore((s) => s.setConfidence);
   const markReadiness  = useStore((s) => s.markReadinessDone);
@@ -64,7 +64,7 @@ function ReadinessPageInner() {
       setReadiness(result.score, result.status);
       setConfidence(result.confidence_score);
       markReadiness();
-      router.push(`/result?uid=${userId}`);
+      router.push(`/result`);
     } catch (e: any) {
       setError(e.message);
       setPhase("questions");

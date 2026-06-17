@@ -152,7 +152,7 @@ function OnboardingPageInner() {
       setUser(result.user_id, name);
       setRole(targetRole);
       markOnboarded();
-      router.push(`/readiness?uid=${result.user_id}`);
+      router.push(`/readiness`);
     } catch (err: any) {
       console.error("❌ Onboarding error:", err);
       setError(err.message);

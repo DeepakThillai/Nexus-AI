@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Send, Bot, User, Loader2, ArrowLeft, Zap } from "lucide-react";
 import { handsOnChat } from "@/lib/api";
 import { useStore } from "@/store/useStore";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import ParticleBackground from "@/components/ParticleBackground";
 
 interface Message { role: "user" | "assistant"; content: string; }
@@ -80,9 +81,7 @@ export default function HandsOnPage() {
 }
 
 function HandsOnPageInner() {
-  const params   = useSearchParams();
-  const storeUid = useStore((s) => s.userId);
-  const userId   = params.get("uid") || storeUid || "";
+  const userId = useAuthGuard();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input,    setInput]    = useState("");

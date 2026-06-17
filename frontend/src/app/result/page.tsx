@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, TrendingDown, TrendingUp, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { getDashboard } from "@/lib/api";
+import { useStore } from "@/store/useStore";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import ParticleBackground from "@/components/ParticleBackground";
 
 const statusConfig = {
@@ -53,8 +55,7 @@ export default function ResultPage() {
 
 function ResultPageInner() {
   const router = useRouter();
-  const params = useSearchParams();
-  const userId = params.get("uid") || "";
+  const userId = useAuthGuard();
 
   const [data,    setData]    = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -129,7 +130,7 @@ function ResultPageInner() {
           </div>
         </div>
 
-        <button onClick={() => router.push(`/dashboard?uid=${userId}`)}
+        <button onClick={() => router.push("/dashboard")}
           className="btn-primary w-full flex items-center justify-center gap-2 py-4 text-base">
           View My Dashboard <ArrowRight size={18} />
         </button>
