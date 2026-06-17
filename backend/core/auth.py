@@ -1,12 +1,10 @@
 """
 auth.py — Password generation, hashing, verification, and email sending.
+Uses Resend API for email delivery (works on Render — no SMTP port blocking).
 """
 import os
 import random
 import string
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from pathlib import Path
 
 import bcrypt
@@ -37,27 +35,18 @@ def verify_password(plain: str, hashed: str) -> bool:
         return False
 
 
-# ── Email sending ─────────────────────────────────────────────────
-
-def _get_smtp_config():
-    return {
-        "host":     os.getenv("SMTP_HOST", "smtp.gmail.com"),
-        "port":     int(os.getenv("SMTP_PORT", "587")),
-        "user":     os.getenv("SMTP_USER", ""),
-        "password": os.getenv("SMTP_PASSWORD", "").replace(" ", ""),  # strip spaces from app password
-        "from":     os.getenv("SMTP_FROM", os.getenv("SMTP_USER", "")),
-    }
-
+# ── Email sending via Resend API ──────────────────────────────────
 
 def send_password_email(to_email: str, password: str, is_new_user: bool) -> bool:
     """
-    Send the generated password to the user's email.
-    Returns True on success, False on failure (fails silently so auth still works).
+    Send password email via Resend API (HTTPS — works on Render free tier).
+    Falls back gracefully if RESEND_API_KEY is not set.
     """
-    cfg = _get_smtp_config()
-    if not cfg["user"] or not cfg["password"]:
-        print("[Auth] SMTP not configured — password not emailed. "
-              f"Set SMTP_USER and SMTP_PASSWORD in .env. Password: {password}")
+    api_key = os.getenv("RESEND_API_KEY", "")
+    from_addr = os.getenv("RESEND_FROM", "Nexus-AI <onboarding@resend.dev>")
+
+    if not api_key:
+        print(f"[Auth] RESEND_API_KEY not set — password not emailed. Password: {password}")
         return False
 
     subject = "Welcome to Nexus-AI — Your Password" if is_new_user else "Nexus-AI — Your New Password"
@@ -71,7 +60,7 @@ def send_password_email(to_email: str, password: str, is_new_user: bool) -> bool
     <p style="color:#aaa;font-size:13px;margin:0 0 8px;">Your password</p>
     <p style="font-size:28px;font-weight:900;letter-spacing:4px;color:#fff;margin:0;">{password}</p>
   </div>
-  <p style="color:#aaa;font-size:13px;">Keep this safe. You can request a new password anytime using "Forgot Password".</p>
+  <p style="color:#aaa;font-size:13px;">Keep this safe. Use "Forgot Password" on the sign-in page to get a new one anytime.</p>
 </div>
 """
     else:
@@ -88,21 +77,16 @@ def send_password_email(to_email: str, password: str, is_new_user: bool) -> bool
 """
 
     try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"]    = cfg["from"]
-        msg["To"]      = to_email
-        msg.attach(MIMEText(body_html, "html"))
-
-        with smtplib.SMTP(cfg["host"], cfg["port"], timeout=10) as server:
-            server.ehlo()
-            server.starttls()
-            server.login(cfg["user"], cfg["password"])
-            server.sendmail(cfg["from"], to_email, msg.as_string())
-
-        print(f"[Auth] Password email sent to {to_email}")
+        import resend
+        resend.api_key = api_key
+        resend.Emails.send({
+            "from": from_addr,
+            "to": [to_email],
+            "subject": subject,
+            "html": body_html,
+        })
+        print(f"[Auth] Password email sent to {to_email} via Resend")
         return True
-
     except Exception as e:
-        print(f"[Auth] Failed to send email to {to_email}: {e}")
+        print(f"[Auth] Resend failed for {to_email}: {e}")
         return False
