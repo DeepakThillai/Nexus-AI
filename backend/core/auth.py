@@ -1,10 +1,13 @@
 """
 auth.py — Password generation, hashing, verification, and email sending.
-Uses Resend API for email delivery (works on Render — no SMTP port blocking).
+Uses Brevo SMTP relay for email delivery.
 """
 import os
 import random
 import string
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from pathlib import Path
 
 import bcrypt
@@ -19,7 +22,6 @@ except ImportError:
 # ── Password helpers ──────────────────────────────────────────────
 
 def generate_password(length: int = 10) -> str:
-    """Generate a readable random password: letters + digits, no ambiguous chars."""
     chars = string.ascii_letters.replace("l", "").replace("I", "").replace("O", "") + string.digits
     return "".join(random.choices(chars, k=length))
 
@@ -35,18 +37,17 @@ def verify_password(plain: str, hashed: str) -> bool:
         return False
 
 
-# ── Email sending via Resend API ──────────────────────────────────
+# ── Email sending via Brevo SMTP ──────────────────────────────────
 
 def send_password_email(to_email: str, password: str, is_new_user: bool) -> bool:
-    """
-    Send password email via Resend API (HTTPS — works on Render free tier).
-    Falls back gracefully if RESEND_API_KEY is not set.
-    """
-    api_key = os.getenv("RESEND_API_KEY", "")
-    from_addr = os.getenv("RESEND_FROM", "Nexus-AI <onboarding@resend.dev>")
+    smtp_host = os.getenv("SMTP_HOST", "smtp-relay.brevo.com")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USER", "")
+    smtp_pass = os.getenv("SMTP_PASSWORD", "").replace(" ", "")
+    from_addr = os.getenv("SMTP_FROM", smtp_user)
 
-    if not api_key:
-        print(f"[Auth] RESEND_API_KEY not set — password not emailed. Password: {password}")
+    if not smtp_user or not smtp_pass:
+        print(f"[Auth] SMTP not configured — password not emailed. Password: {password}")
         return False
 
     subject = "Welcome to Nexus-AI — Your Password" if is_new_user else "Nexus-AI — Your New Password"
@@ -77,16 +78,20 @@ def send_password_email(to_email: str, password: str, is_new_user: bool) -> bool
 """
 
     try:
-        import resend
-        resend.api_key = api_key
-        resend.Emails.send({
-            "from": from_addr,
-            "to": [to_email],
-            "subject": subject,
-            "html": body_html,
-        })
-        print(f"[Auth] Password email sent to {to_email} via Resend")
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"]    = f"Nexus-AI <{from_addr}>"
+        msg["To"]      = to_email
+        msg.attach(MIMEText(body_html, "html"))
+
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.sendmail(from_addr, to_email, msg.as_string())
+
+        print(f"[Auth] Password email sent to {to_email} via Brevo SMTP")
         return True
     except Exception as e:
-        print(f"[Auth] Resend failed for {to_email}: {e}")
+        print(f"[Auth] SMTP failed for {to_email}: {e}")
         return False
