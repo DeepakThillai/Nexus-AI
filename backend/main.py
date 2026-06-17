@@ -68,9 +68,16 @@ app = FastAPI(
 
 # CORS for Next.js frontend
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+allowed_origins = [
+    frontend_url,
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+# Also allow any onrender.com subdomain for convenience
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_url, "http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.onrender\.com",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
