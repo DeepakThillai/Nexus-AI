@@ -284,7 +284,7 @@ export default function HelpPage() {
   const [active, setActive] = useState("getting-started");
   const section = sections.find((s) => s.id === active)!;
   const userId  = useStore((s) => s.userId);
-  const appLink = userId ? `/dashboard?uid=${userId}` : "/auth";
+  const appLink = userId ? `/dashboard` : "/auth";
   const appLabel = userId ? "Back to Dashboard →" : "Back to App →";
 
   return (
