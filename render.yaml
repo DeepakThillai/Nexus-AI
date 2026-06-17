@@ -1,0 +1,50 @@
+services:
+
+  # ── Backend: FastAPI ─────────────────────────────────────────────
+  - type: web
+    name: nexus-ai-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB
+        value: career_navigation
+      - key: MONGO_COLL
+        value: user_contexts
+      - key: FRONTEND_URL
+        sync: false          # set to your Render frontend URL after deploy
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: RESUME_UPLOAD_DIR
+        value: /app/data/resumes
+      - key: USER_CONTEXT_DIR
+        value: /app/data/user_contexts
+      - key: LOG_LEVEL
+        value: INFO
+
+  # ── Frontend: Next.js ────────────────────────────────────────────
+  - type: web
+    name: nexus-ai-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free
+    buildArgs:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://nexus-ai-backend.onrender.com   # update after backend deploys
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://nexus-ai-backend.onrender.com   # update after backend deploys
