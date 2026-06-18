@@ -285,7 +285,7 @@ export default function HelpPage() {
   const section = sections.find((s) => s.id === active)!;
   const userId  = useStore((s) => s.userId);
   const appLink  = userId ? `/dashboard` : "/";
-  const appLabel = userId ? "Back to Dashboard →" : "Back to App →";
+  const appLabel = userId ? "← Dashboard" : "← Back";
 
   return (
     <div className="min-h-screen bg-[#0F1117] bg-grid">
@@ -445,8 +445,8 @@ export default function HelpPage() {
                     Next Topic →
                   </button>
                 ) : (
-                  <Link href={appLink} className="btn-primary flex items-center gap-2 text-sm">
-                    {userId ? "Go to Dashboard →" : "Start Using Nexus-AI →"}
+                  <Link href={userId ? "/dashboard" : "/auth"} className="btn-primary flex items-center gap-2 text-sm">
+                    {userId ? "Go to Dashboard →" : "Get Started →"}
                   </Link>
                 )}
               </div>
