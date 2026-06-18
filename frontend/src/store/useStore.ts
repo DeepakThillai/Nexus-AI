@@ -1,9 +1,10 @@
 /**
  * store/useStore.ts — Zustand global state
  * Stores UI state only. All authoritative data lives in MongoDB.
+ * Uses sessionStorage — clears automatically when browser tab is closed.
  */
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 interface UserState {
   userId: string | null;
@@ -55,6 +56,9 @@ export const useStore = create<UserState>()(
           isReadinessDone: false,
         }),
     }),
-    { name: "nexus-user-store" }
+    {
+      name: "nexus-user-store",
+      storage: createJSONStorage(() => sessionStorage),
+    }
   )
 );
