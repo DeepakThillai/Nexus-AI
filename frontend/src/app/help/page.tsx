@@ -284,8 +284,6 @@ export default function HelpPage() {
   const [active, setActive] = useState("getting-started");
   const section = sections.find((s) => s.id === active)!;
   const userId  = useStore((s) => s.userId);
-  const appLink  = userId ? `/dashboard` : "/";
-  const appLabel = userId ? "← Dashboard" : "← Back";
 
   return (
     <div className="min-h-screen bg-[#0F1117] bg-grid">
@@ -306,9 +304,9 @@ export default function HelpPage() {
               <HelpCircle size={14} /> Help Center
             </span>
           </div>
-          <Link href={appLink} className="btn-ghost text-sm py-2 px-4">
-            {appLabel}
-          </Link>
+          <button onClick={() => window.history.back()} className="btn-ghost text-sm py-2 px-4">
+            ← Back
+          </button>
         </div>
       </nav>
 

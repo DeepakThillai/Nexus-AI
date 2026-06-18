@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Brain, TrendingUp, Target, Calendar, Map, BarChart3, MessageSquare, RefreshCw, Loader2, AlertTriangle, HelpCircle, Users } from "lucide-react";
+import { Brain, TrendingUp, Target, Calendar, Map, BarChart3, MessageSquare, RefreshCw, Loader2, AlertTriangle, HelpCircle, Users, LogOut } from "lucide-react";
 import Image from "next/image";
 import { getDashboard } from "@/lib/api";
 import Link from "next/link";
@@ -44,6 +44,7 @@ export default function DashboardPage() {
 function DashboardPageInner() {
   const router  = useRouter();
   const userId  = useAuthGuard();
+  const reset   = useStore((s) => s.reset);
   const [data,    setData]    = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refresh, setRefresh] = useState(0);
@@ -98,6 +99,12 @@ function DashboardPageInner() {
                 <Icon size={13} />{label}
               </Link>
             ))}
+            <button
+              onClick={() => { reset(); router.push("/"); }}
+              className="btn-ghost text-xs py-2 px-3 flex items-center gap-1.5 text-red-400/70 hover:text-red-400 border-red-500/10"
+            >
+              <LogOut size={13} /> Sign Out
+            </button>
           </div>
         </div>
       </nav>

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Brain, Mail, Lock, ArrowRight, Loader2, RefreshCw, Eye, EyeOff } from "lucide-react";
@@ -13,6 +13,10 @@ type Step = "email" | "password";
 export default function AuthPage() {
   const router  = useRouter();
   const setUser = useStore((s) => s.setUser);
+  const reset   = useStore((s) => s.reset);
+
+  // Visiting /auth always clears any existing session
+  useEffect(() => { reset(); }, []);
 
   const [step,        setStep]        = useState<Step>("email");
   const [email,       setEmail]       = useState("");

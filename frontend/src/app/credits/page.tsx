@@ -47,9 +47,6 @@ const stack = [
 ];
 
 export default function CreditsPage() {
-  const userId = useStore((s) => s.userId);
-  const appLink  = userId ? `/dashboard` : "/";
-  const appLabel = userId ? "← Dashboard" : "← Back";
   return (
     <div className="min-h-screen bg-[#0F1117] bg-grid">
       <ParticleBackground />
@@ -67,7 +64,7 @@ export default function CreditsPage() {
           </Link>
           <div className="flex items-center gap-2">
             <Link href="/help" className="btn-ghost text-sm py-2 px-4">Help</Link>
-            <Link href={appLink} className="btn-ghost text-sm py-2 px-4">{appLabel}</Link>
+            <button onClick={() => window.history.back()} className="btn-ghost text-sm py-2 px-4">← Back</button>
           </div>
         </div>
       </nav>
