@@ -45,7 +45,7 @@ Nexus-AI deploys specialised AI agents to assess your career readiness, generate
 |---|---|
 | Frontend | Next.js 14 (App Router), TypeScript, Tailwind CSS, Framer Motion, Zustand, Recharts |
 | Backend | FastAPI, Python 3.10+, Uvicorn |
-| AI | Groq API (LLaMA-class models) |
+| AI | Groq API + RAG |
 | Database | MongoDB Atlas (cloud, free tier works) |
 | Auth | bcrypt password hashing, SMTP email delivery |
 | Resume parsing | PyMuPDF, Pillow, pytesseract |

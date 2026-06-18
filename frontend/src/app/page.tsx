@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Brain, Target, TrendingUp, Zap, BarChart3, Map, HelpCircle } from "lucide-react";
 import HeroParticleBackground from "@/components/HeroParticleBackground";
+import { useStore } from "@/store/useStore";
 
 const features = [
   { icon: Brain,      title: "AI Readiness Assessment",  desc: "10 Agent-powered questions evaluate your true readiness for your target role." },
@@ -22,6 +23,8 @@ const stats = [
 ];
 
 export default function LandingPage() {
+  const userId = useStore((s) => s.userId);
+  const authLink = userId ? "/dashboard" : "/auth";
   return (
     <div className="min-h-screen bg-[#0F1117] bg-grid overflow-hidden">
       <HeroParticleBackground />
@@ -44,8 +47,14 @@ export default function LandingPage() {
               <HelpCircle size={14} /> Help
             </Link>
             <Link href="/credits" className="btn-ghost text-sm py-2 px-4">Credits</Link>
-            <Link href="/auth" className="btn-ghost text-sm py-2 px-4">Sign In</Link>
-            <Link href="/auth" className="btn-primary text-sm py-2 px-4">Get Started</Link>
+            {userId ? (
+              <Link href="/dashboard" className="btn-primary text-sm py-2 px-4">Dashboard</Link>
+            ) : (
+              <>
+                <Link href="/auth" className="btn-ghost text-sm py-2 px-4">Sign In</Link>
+                <Link href="/auth" className="btn-primary text-sm py-2 px-4">Get Started</Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -73,8 +82,8 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth" className="btn-primary inline-flex items-center gap-2 text-base px-8 py-4">
-              Start Your Journey <ArrowRight size={18} />
+            <Link href={authLink} className="btn-primary inline-flex items-center gap-2 text-base px-8 py-4">
+              {userId ? "Go to Dashboard" : "Start Your Journey"} <ArrowRight size={18} />
             </Link>
             <Link href="#features" className="btn-ghost inline-flex items-center gap-2 text-base px-8 py-4">
               See How It Works
@@ -140,8 +149,8 @@ export default function LandingPage() {
         >
           <h2 className="text-4xl font-black mb-4">Ready to navigate smarter?</h2>
           <p className="text-white/40 mb-8">Join thousands using AI agents to accelerate their careers.</p>
-          <Link href="/auth" className="btn-primary inline-flex items-center gap-2 text-base px-10 py-4">
-            Begin Assessment <ArrowRight size={18} />
+          <Link href={authLink} className="btn-primary inline-flex items-center gap-2 text-base px-10 py-4">
+            {userId ? "Go to Dashboard" : "Begin Assessment"} <ArrowRight size={18} />
           </Link>
         </motion.div>
       </section>

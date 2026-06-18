@@ -48,7 +48,7 @@ const stack = [
 
 export default function CreditsPage() {
   const userId = useStore((s) => s.userId);
-  const appLink = userId ? `/dashboard` : "/auth";
+  const appLink  = userId ? `/dashboard` : "/";
   const appLabel = userId ? "Dashboard →" : "Get Started";
   return (
     <div className="min-h-screen bg-[#0F1117] bg-grid">
